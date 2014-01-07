@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Administrator Lounge</title>
+    <script type="text/javascript"
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJWijKmFSCDi9U5ZboNGIxqxZbTStqoPI&sensor=true">
+    </script>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" media="screen" href="/stylesheets/admin/main.css">
+    <script src="//code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <script>
+        $(function() {
+            $( "#tabs" ).tabs();
+        });
+    </script>
+    <script>
+        var map;
+        function getLocation(functionToUse){
+            if(navigator.geolocation){
+                navigator.geolocation.getCurrentPosition(functionToUse);
+            }
+        }
+        function fillMissionUploadFormLocation(position){
+            var latitudeInputField = document.getElementById("latitude");
+            var longitudeInputField = document.getElementById("longitude");
+            latitudeInputField.value = position.coords.latitude;
+            longitudeInputField.value = position.coords.longitude;
+        }
+        function fillMissionRetrievalFormLocation(position){
+            var latitudeInputField = document.getElementById("latitude_2");
+            var longitudeInputField = document.getElementById("longitude_2");
+            latitudeInputField.value = position.coords.latitude;
+            longitudeInputField.value = position.coords.longitude;
+        }
+        function initialize() {
+            var mapOptions = {
+                center: new google.maps.LatLng(47.37835, 8.54812),
+                zoom: 15
+            };
+            map = new google.maps.Map(document.getElementById("map-canvas"),
+                                      mapOptions);
+        }
+        google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+</head>
+<body>
+
+<div class="tab_div" id="tabs">
+    <ul>
+        <li><a href="#mission_form_tab">Missions</a></li>
+        <li><a href="#some_div">Waypoints</a></li>
+    </ul>
+<div id="some_div">Some div</div>
+<div class="main_div" id="mission_form_tab"> <!-- Main Div-->
+<div class="left_div">
+<form class="mission_form" action="{{ destination_url }}" method="post" name ="mission_upload_form" 
+      id="mission_upload_form" enctype="multipart/form-data">
+<ul>
+    <li>
+         <h2>New Mission Waypoint</h2>
+    </li>
+    <li>
+        <label for="image_name">Image Name:</label>
+        <input type="text" id="image_name" name="image_name" placeholder="CAB frontal view" required/> 
+        <span class="form_hint">Something meaningful, e.g. "CAB frontal view"</span>
+    </li>
+    <li>
+        <label for="latitude">Latitude:</label>
+        <input type="number" name="latitude" id="latitude"
+               placeholder="47.37835" step="any" min="-90" max="90" required/>
+    </li>
+    <li>
+        <label for="longitude">Longitude:</label>
+        <input type="number" name="longitude" id="longitude" 
+               placeholder="8.54812" step="any" min="-180" max="180" required/>
+        <button type="button" id="use_loc" name="use_loc" onclick="getLocation(fillMissionUploadFormLocation)">Use my location</button>
+    </li>
+    <li>
+        <label for="upload_image">Image file:</label>
+        <input type="file" accept="image/*" id="upload_image" name="upload_image" required/>
+    </li>
+    <li>
+        <button class="submit" type="submit">Submit new mission</button> 
+    </li>
+</ul>
+</form>
+</div>
+
+<div class="right_div">
+<div id="form-div">
+<form class="mission_form" action="/admin/get_mission" method="post" name="mission_retrieval_form" id="mission_retrieval_form">
+<ul>
+    <li>
+         <h2>Retrieve close waypoints</h2>
+    </li>
+    <li>
+        <label for="latitude">Latitude:</label>
+        <input type="number" name="latitude" id="latitude_2" placeholder="47.37835" step="any" min="-90" max="90" required/>
+    </li>
+    <li>
+        <label for="longitude">Longitude:</label>
+        <input type="number" name="longitude" id="longitude_2" placeholder="8.54812" step="any" min="-180" max="180" required/>
+        <button formaction="" type="button" id="use_loc" name="use_loc" onclick="getLocation(fillMissionRetrievalFormLocation)">Use my location</button>
+    </li>
+    <li>
+        <label for="max_distance">Max distance:</label>
+        <input type="number" name="max_distance" id="max_distance" placeholder="100" step="any" min="0" required/>
+    </li>
+    <li>
+        <label for="max_results">Max results:</label>
+        <input type="number" name="max_results" id="max_results" placeholder="10" step="1" min="0" max="100" required/>
+    </li>
+    <li>
+        <button class="submit" type="submit">Retrieve missions</button> 
+    </li>
+</ul>
+</form>
+</div>
+<div id="map-canvas"/>
+</div>
+
+</div>
+
+<script>
+    var markers = [];
+    // Attach a submit handler to the form
+    $( "#mission_retrieval_form" ).submit(function( event ) {
+
+        // Stop form from submitting normally
+        event.preventDefault();
+
+        // Get some values from elements on the page:
+        var $form = $( this );
+        lat = $form.find( "input[name='latitude']" ).val();
+        long = $form.find( "input[name='longitude']" ).val();
+        max_dist = $form.find( "input[name='max_distance']" ).val();
+        max_res = $form.find( "input[name='max_results']" ).val();
+        url = $form.attr( "action" );
+
+        // Send the data using post
+        var posting = $.post( url, { latitude: lat,
+                                     longitude: long,
+                                     max_distance: max_dist,
+                                     max_results: max_res } );
+        var infowindow = new google.maps.InfoWindow({
+            content : ""
+        });
+        map.infoWindow = infowindow;
+        function newGoogleMapsMarker(param) {
+            var marker = new google.maps.Marker({
+                map: map,
+                position: new google.maps.LatLng(param.latitude, param.longitude),
+                title: param.name
+            });
+            google.maps.event.addListener(marker, 'click', function() {
+                // this -> the marker on which the onclick event is being attached
+                this.getMap().infoWindow.close();
+                this.getMap().infoWindow.setContent('<img width="200px" height="200px" src="' + param.image_url + '" alt="test">');
+                this.getMap().infoWindow.open(this.getMap(), this);
+            });
+            return marker;
+        }
+
+        // Put the results in a div
+        posting.done(function( data ) {
+            // Clear any previous markers
+            for(var i = 0; i < markers.length; ++i){
+                markers[i].setMap(null);
+            }
+            var center = new google.maps.LatLng(lat,long);
+            var bounded_box = new google.maps.LatLngBounds(center,center);
+            var points_to_draw = data.waypoints
+            for(var i = 0; i < points_to_draw.length; ++i){
+                var point = points_to_draw[i];
+                var myLatlng = new google.maps.LatLng(point.latitude, point.longitude);
+                var marker = newGoogleMapsMarker(point);
+                bounded_box.extend(myLatlng);
+                markers[markers.length] = marker;
+            }
+            map.setCenter(center);
+            map.fitBounds(bounded_box);
+        });
+    });
+</script>
+</div>
+
+</body>
+</html>

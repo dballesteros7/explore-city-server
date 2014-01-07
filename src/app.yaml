@@ -1,0 +1,27 @@
+application: street-view-density
+version: 2
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /stylesheets
+  static_dir: stylesheets
+
+- url: /admin
+  script: entry_point.app
+  #login: admin
+
+- url: /admin/.*
+  script: entry_point.app
+  #login: admin
+
+- url: /.*
+  script: entry_point.app
+  #login: required
+
+libraries:
+- name: webapp2
+  version: latest
+- name: jinja2
+  version: latest
