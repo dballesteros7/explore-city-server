@@ -1,8 +1,10 @@
 '''
-Module that provides the handlers for the administrator functions in the server.
+Module that provides the handlers for administrator functions done
+through the admin html interface. This is limited to waypoint creation and
+retrieval.
 
 It provides classes that serve the admin interface and provide the upload
-handler for the reference images, as well as retrieving mission points for
+handler for the reference images, as well as retrieving mission waypoints for
 display.
 
 Created on Dec 10, 2013
@@ -22,22 +24,22 @@ from models.geopoint import GeoPoint
 from models.missionwaypoint import MissionWaypoint
 
 
-class AdminUploadInterface(webapp2.RequestHandler):
+class AdminInterface(webapp2.RequestHandler):
     '''
     Handler that serves the admin interface where
     an administrator user can upload reference images and check
-    the status of the missions in the system.
+    the status of the waypoints in the system.
     '''
     def get(self):
         """
         Serve the admin interface
         """
-        upload_url = blobstore.create_upload_url('/admin/upload')
+        upload_url = blobstore.create_upload_url('/admin/upload_waypoint')
         template_values = {'destination_url' : upload_url}
         template = JINJA_ENVIRONMENT.get_template(os.path.join('html', 'admin', 'admin.html'))
         self.response.write(template.render(template_values))
 
-class AdminUploader(blobstore_handlers.BlobstoreUploadHandler):
+class AdminWaypointUpload(blobstore_handlers.BlobstoreUploadHandler):
     '''
     Handler that accepts a new image uploaded using the admin interface
     and stores its model in the datastore
@@ -90,9 +92,9 @@ class AdminWaypointRetrieval(webapp2.RequestHandler):
         response_results = {'waypoints' : []}
         for result in results:
             response_results['waypoints'].append({'latitude' : result.waypoint.latitude,
-                                                       'longitude' : result.waypoint.longitude,
-                                                       'image_url' : get_serving_url(result.reference_image),
-                                                       'name' : result.waypointname})
+                                                  'longitude' : result.waypoint.longitude,
+                                                  'image_url' : get_serving_url(result.reference_image),
+                                                  'name' : result.waypointname})
         self.response.out.write(json.dumps(response_results))
 
 JINJA_ENVIRONMENT = jinja2.Environment(

@@ -6,15 +6,8 @@
     <script type="text/javascript"
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJWijKmFSCDi9U5ZboNGIxqxZbTStqoPI&sensor=true">
     </script>
-    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
     <link rel="stylesheet" media="screen" href="/stylesheets/admin/main.css">
-    <script src="//code.jquery.com/jquery-1.9.1.js"></script>
-    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
-    <script>
-        $(function() {
-            $( "#tabs" ).tabs();
-        });
-    </script>
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
     <script>
         var map;
         function getLocation(functionToUse){
@@ -47,12 +40,6 @@
 </head>
 <body>
 
-<div class="tab_div" id="tabs">
-    <ul>
-        <li><a href="#mission_form_tab">Missions</a></li>
-        <li><a href="#some_div">Waypoints</a></li>
-    </ul>
-<div id="some_div">Some div</div>
 <div class="main_div" id="mission_form_tab"> <!-- Main Div-->
 <div class="left_div">
 <form class="mission_form" action="{{ destination_url }}" method="post" name ="mission_upload_form" 
@@ -90,7 +77,7 @@
 
 <div class="right_div">
 <div id="form-div">
-<form class="mission_form" action="/admin/get_mission" method="post" name="mission_retrieval_form" id="mission_retrieval_form">
+<form class="mission_form" action="/admin/get_waypoint" method="post" name="mission_retrieval_form" id="mission_retrieval_form">
 <ul>
     <li>
          <h2>Retrieve close waypoints</h2>
@@ -184,7 +171,6 @@
         });
     });
 </script>
-</div>
 
 </body>
 </html>

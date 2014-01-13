@@ -6,18 +6,18 @@ Created on Dec 10, 2013
 
 import webapp2
 
-from handler.admin_interface import AdminUploadInterface, AdminUploader,\
-    AdminWaypointRetrieval
-from handler.client_interface import ClientWaypointProvider, \
-    ClientMissionProvider
-from handler.general_handler import ServeHandler
+from webapp2_extras.routes import RedirectRoute
+
+from handler.api.imageservice import ImageUploadHandler, ImageUploadUrlProvider
+from handler.api.waypoints import WaypointResource
+from handler.api.missions import MissionResource
 
 
 app = webapp2.WSGIApplication([
-  ('/admin', AdminUploadInterface),
-  ('/admin/upload', AdminUploader),
-  ('/admin/get_mission', AdminWaypointRetrieval),
-  ('/serve/([^/]+)?', ServeHandler),
-  ('/get_waypoint', ClientWaypointProvider),
-  ('/get_client', ClientMissionProvider)
+  RedirectRoute(r'/api/upload', handler = ImageUploadHandler, methods = ['POST'], name = 'image-upload', strict_slash = True),
+  RedirectRoute(r'/api/upload', handler = ImageUploadUrlProvider, methods = ['GET'], name = 'image-upload-url', strict_slash = True),
+  RedirectRoute(r'/api/waypoints', handler = WaypointResource, name = 'waypoints-resource', strict_slash = True),
+  RedirectRoute(r'/api/waypoints/<name>', handler = WaypointResource, name = 'waypoints-resource-named', strict_slash = True),
+  RedirectRoute(r'/api/missions', handler = MissionResource, name = 'missions-resource', strict_slash = True),
+  RedirectRoute(r'/api/missions/<name>', handler = MissionResource, name = 'missions-resource-named', strict_slash = True),
 ])

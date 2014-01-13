@@ -12,9 +12,10 @@ Created on Dec 6, 2013
 from google.appengine.ext import ndb
 
 from geocell.utils import computegeocell
+from models.general import GenericModel
 
 
-class GeoPoint(ndb.Model):
+class GeoPoint(GenericModel):
     '''
     A GeoPoint object represents a location in the world, defined as a longitude
     and latitude, with additional information about the surrounding geocells.
