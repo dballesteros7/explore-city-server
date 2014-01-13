@@ -57,7 +57,7 @@ def build_options():
     option_parser = argparse.ArgumentParser(description = 'CLI for admins of the explore-city server.')
 
     # Add the option for the base URL
-    option_parser.add_argument('--url', default = 'http://street-view-density.appspot.com/api')
+    option_parser.add_argument('--url', default = 'http://dev.street-view-density.appspot.com/api')
 
     # Add the option either create a mission or a waypoint
     option_parser.add_argument('action', choices = ['m', 'w'])
