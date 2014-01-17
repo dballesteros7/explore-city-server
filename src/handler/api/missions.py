@@ -219,4 +219,4 @@ class MissionResource(BaseResource):
 
         It is just an alias for validate_parmaeters_post(check_existence = False)
         '''
-        self.validate_parameters_post(parameters, check_existence = False)
+        return self.validate_parameters_post(parameters, check_existence = False)

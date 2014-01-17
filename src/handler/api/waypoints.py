@@ -152,6 +152,7 @@ class WaypointResource(BaseResource):
             waypoint_to_update.location = new_location
 
         if 'image_key' in model_params:
+            # TODO: Delete old image in the blob store
             image_key = BlobKey(parameters['image_key'])
             waypoint_to_update.reference_image = image_key
 

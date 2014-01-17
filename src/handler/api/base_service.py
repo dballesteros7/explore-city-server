@@ -28,8 +28,11 @@ class BaseResource(webapp2.RequestHandler):
         immutable.
         '''
         if json_accepted and 'application/json' in self.request.headers.get('Content_Type'):
-            # TODO: Catch bad JSON
-            parameters = json.loads(self.request.body)
+            try:
+                parameters = json.loads(self.request.body)
+            except:
+                # Assume bad JSON
+                self.abort(400, detail = 'Bad JSON body.')
         elif urlencoded_accepted and \
             'application/x-www-form-urlencoded' in self.request.headers.get('Content_Type'):
             parameters = self.request.params

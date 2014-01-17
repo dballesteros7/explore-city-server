@@ -7,6 +7,7 @@ Created on Jan 13, 2014
 '''
 from datetime import datetime
 from google.appengine.api import users
+from google.appengine.api.blobstore import BlobKey
 import json
 
 from handler.api.base_service import BaseResource
@@ -45,11 +46,12 @@ class SubmissionResource(BaseResource):
         # TODO: Ensure that submissions only come from authorized apps.
         if users.get_current_user() is None:
             # Anonymous uploads are just valid for testing.
-            anon_user = User(email = "anonymous@explorecity.ch")
-            anon_user.get_by_email()
-
-        current_user = users.get_current_user()
-        user_model = User.get_or_insert(current_user.user_id(),
+            user_model = User.get_or_insert('Unique-Awesome-ID',
+                                            email = "anonymous@explorecity.ch",
+                                            nickname = "anonymous")
+        else:
+            current_user = users.get_current_user()
+            user_model = User.get_or_insert(current_user.user_id(),
                                         nickname = current_user.nickname(),
                                         email = current_user.email())
 
@@ -59,9 +61,11 @@ class SubmissionResource(BaseResource):
         user_submission = Submission(parent = user_model.key,
                                      reference_mission = model_params['mission'].key,
                                      reference_waypoint = model_params['waypoint'].key,
-                                     timestamp = datetime.utcnow())
+                                     timestamp = datetime.utcnow(),
+                                     submitted_image = model_params['image_key'])
 
         # TODO: Calculate asynchronous image score
+        # Using the Tasks API
 
         submission_key = user_submission.put()
 
@@ -87,14 +91,15 @@ class SubmissionResource(BaseResource):
             if not parameters[param]:
                 self.abort(400, detail = 'Bad value for param %s.' % param)
 
-        reference_mission = Mission.get_by_id(model_params['mission'])
+        reference_mission = Mission.get_by_id(parameters['mission'])
         if reference_mission is None:
             self.abort(400, detail = 'The given mission id does not exist.')
-        reference_waypoint = MissionWaypoint.get_by_id(model_params['waypoint'])
+        reference_waypoint = MissionWaypoint.get_by_id(parameters['waypoint'])
         if reference_waypoint is None:
             self.abort(400, detail = 'The given waypoint id does not exist.')
         model_params['mission'] = reference_mission
         model_params['waypoint'] = reference_waypoint
 
         # TODO: Check for blob key existence
-        model_params['image_key'] = parameters['image_key']
+        model_params['image_key'] = BlobKey(parameters['image_key'])
+        return model_params
