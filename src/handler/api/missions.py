@@ -7,20 +7,24 @@ Created on Jan 10, 2014
 from google.appengine.api.images import get_serving_url
 from google.appengine.ext.ndb.key import Key
 import json
-import webapp2
 
+from handler.api.base_service import BaseResource
 from models.geopoint import GeoPoint
 from models.mission import Mission
 from models.missionwaypoint import MissionWaypoint
 from webutils import parseutils
 
 
-class MissionResource(webapp2.RequestHandler):
+class MissionResource(BaseResource):
     '''
     Webapp2 handler that provides CRUD functionality for mission
     objects in the system. This connects directly with Google's datastore
     to manipulate the mission objects.
     '''
+
+    ###########################################################################
+    # HTTP Verbs
+    ###########################################################################
 
     def get(self, name = None):
         '''
@@ -72,7 +76,7 @@ class MissionResource(webapp2.RequestHandler):
             results = Mission.query_all(qry_max_results)
 
         # Build the JSON response
-        self.response.headers['Content-Type'] = 'application/json'
+        self.build_base_response()
         response_results = {'missions' : []}
         for mission in results:
             missionObject = {'name' : mission.key.id(),
@@ -88,9 +92,8 @@ class MissionResource(webapp2.RequestHandler):
 
     def post(self):
         '''
-        Provides the POST verb for the waypoints resource. It creates a new
-        mission waypoint in the datastore given its location information
-        and the associated image blob key.
+        Provides the POST verb for the missions resource. It creates a new
+        mission in the datastore given an orderered list of waypoints.
 
         It accepts parameters only in the body as JSON,
         the required arguments are:
@@ -103,47 +106,117 @@ class MissionResource(webapp2.RequestHandler):
         '''
         # TODO: Access control
         # Check the content type and parse the argument appropriately
-        if self.request.headers.get('Content_Type') == 'application/json':
-            # TODO: Catch bad JSON
-            parameters = json.loads(self.request.body)
-        else:
-            self.abort(400, detail = 'Bad content type.')
-        model_parameters = self.validate_parameters_post(parameters)
-        mission = Mission(id = model_parameters['name'],
-                          startWaypoint = model_parameters['waypoints'][0],
-                          waypoints = model_parameters['waypoints'])
+        parameters = self.parse_request_body(urlencoded_accepted = False)
+        model_params = self.validate_parameters_post(parameters)
+
+        # Build the mission object and store it in the datastore
+        mission = Mission(id = model_params['name'],
+                          startWaypoint = model_params['waypoints'][0],
+                          waypoints = model_params['waypoints'])
         mission_key = mission.put()
 
         # Return a response with the newly created object id.
-        self.response.headers['Content-Type'] = 'application/json'
+        self.build_base_response(status_code = 201)
         response_results = {'name' : mission_key.id(),
                             'content_url' : self.uri_for('missions-resource-named',
                                                          name = mission_key.id(),
                                                          _full = True)}
         self.response.out.write(json.dumps(response_results))
 
-    def validate_parameters_post(self, parameters):
+    def put(self, name):
+        '''
+        Provides the PUT verb for the waypoints resource. It allows editing
+        the list of waypoints in a mission. The list of waypoints is replaced
+        by the ordered list of waypoints given in the PUT request body.
+
+        The accepted arguments are:
+            - waypoints: Ordered list of waypoints that will replace the
+                         waypoints in the mission.
+
+        The only format allowed is JSON and the content type should be
+        'application/json'.
+        '''
+        # TODO: Access control
+        # Check the content type and parse the argument appropriately
+        parameters = self.parse_request_body(urlencoded_accepted = False)
+        parameters['name'] = name
+        model_params = self.validate_parameters_put(parameters)
+
+        # Build the mission object and store it in the datastore
+        mission_to_update = model_params['mission']
+        mission_to_update.startWaypoint = model_params['waypoints'][0]
+        mission_to_update.waypoints = model_params['waypoints']
+        mission_to_update.put()
+
+        # Return a response with the newly created object id.
+        self.build_base_response()
+        response_results = {'name' : mission_to_update.key.id(),
+                            'content_url' : self.uri_for('missions-resource-named',
+                                                         name = mission_to_update.key.id(),
+                                                         _full = True)}
+        self.response.out.write(json.dumps(response_results))
+
+    def delete(self, name):
+        '''
+        Provides the DELETE verb for the missions resource. It allows deleting
+        a mission given its name. This DOES NOT delete the associated waypoints.
+        '''
+        # TODO: Access control
+        # Retrieve the mission to delete and check that it exists.
+        mission_to_delete = Mission.get_by_id(name)
+        if mission_to_delete is None:
+            self.abort(400, detail = 'Specified resource does not exist.')
+
+        # Delete the mission
+        mission_to_delete.key.delete()
+
+        # TODO: Clean all submissions related to this mission
+        self.build_base_response()
+
+    ###########################################################################
+    # Utility methods
+    ###########################################################################
+
+    def validate_parameters_post(self, parameters, check_existence = True):
         '''
         Validate the POST arguments for creating a new mission. It checks
         existence and types and also casts the values if necessary.
         Returns a dictionary with the necessary parameters.
         '''
-        model_parameters = {}
-        required_parmaters = ['name', 'waypoints']
-        for param in required_parmaters:
+        model_params = {}
+        required_parameters = ['name', 'waypoints']
+        for param in required_parameters:
             if param not in parameters:
                 self.abort(400, detail = 'Missing required argument %s.' % param)
             if not parameters[param]:
                 self.abort(400, detail = 'Bad value for param %s.' % param)
 
-        model_parameters['name'] = parameters['name']
-        if Mission.get_by_id(model_parameters['name']) is not None:
-            self.abort(400, detail = 'The given mission id already exists.')
-        model_parameters['waypoints'] = []
+        # TODO: Check the name against the Lexicon
+        model_params['name'] = parameters['name']
+        stored_mission = Mission.get_by_id(model_params['name'])
+        if check_existence and stored_mission is not None:
+            self.abort(400, detail = 'Specified resource already exists.')
+        elif not check_existence and stored_mission is None:
+            self.abort(400, detail = 'Specified resource does not exist.')
+        elif not check_existence:
+            model_params['mission'] = stored_mission
+
+        model_params['waypoints'] = []
         for waypoint_id in parameters['waypoints']:
+            # TODO: Check waypoint id against the Lexicon
             candidate_key = Key(MissionWaypoint, waypoint_id)
             if candidate_key.get() is None:
-                self.abort(400, detail = 'The given waypoint: %s does not exist in the datastore.' % waypoint_id)
-            model_parameters['waypoints'].append(candidate_key)
+                self.abort(400, detail = 'Specified resource does not exist.')
+            model_params['waypoints'].append(candidate_key)
 
-        return model_parameters
+        return model_params
+
+    def validate_parameters_put(self, parameters):
+        '''
+        Validate the PUT arguments for updating a mission. It checks
+        existence and types and also casts the values if necessary.
+        Returns a dictionary with the necessary parameters.
+
+        It is just an alias for validate_parmaeters_post(check_existence = False)
+        '''
+        self.validate_parameters_post(parameters, check_existence = False)

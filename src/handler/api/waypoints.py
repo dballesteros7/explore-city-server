@@ -4,23 +4,26 @@ Created on Jan 9, 2014
 
 @author: diegob
 '''
-from google.appengine.api import namespace_manager
 from google.appengine.api.images import get_serving_url
-from google.appengine.ext.blobstore import BlobKey
+from google.appengine.ext.blobstore import BlobInfo, BlobKey
 import json
-import webapp2
 
+from handler.api.base_service import BaseResource
 from models.geopoint import GeoPoint
 from models.missionwaypoint import MissionWaypoint
 from webutils import parseutils
 
 
-class WaypointResource(webapp2.RequestHandler):
+class WaypointResource(BaseResource):
     '''
     Webapp2 handler that provides CRUD functionality for waypoint
     objects in the system. This connects directly with Google's datastore
     to manipulate the waypoint objects.
     '''
+
+    ###########################################################################
+    # HTTP Verbs
+    ###########################################################################
 
     def get(self, name = None):
         '''
@@ -67,7 +70,7 @@ class WaypointResource(webapp2.RequestHandler):
             results = MissionWaypoint.query_all(qry_max_results)
 
         # Build the JSON response
-        self.response.headers['Content-Type'] = 'application/json'
+        self.build_base_response()
         response_results = {'waypoints' : []}
         for result in results:
             response_results['waypoints'].append({'latitude' : result.location.latitude,
@@ -88,19 +91,13 @@ class WaypointResource(webapp2.RequestHandler):
             - longitude: Floating point longitude of the waypoint
             - image_key: Valid key in the blobstore for the reference image
             - name: Name for the waypoint, must be non-existent
-        
+
         The accepted content types are 'application/json' and 
         'application/x-www-form-urlencoded'
         '''
         # TODO: Access control
         # Check the content type and parse the argument appropriately
-        if self.request.headers.get('Content_Type') == 'application/json':
-            # TODO: Catch bad JSON
-            parameters = json.loads(self.request.body)
-        elif self.request.headers.get('Content_Type') == 'application/x-www-form-urlencoded':
-            parameters = self.request.params
-        else:
-            webapp2.abort(400, detail = 'Bad content type.')
+        parameters = self.parse_request_body()
         model_params = self.validate_parameters_post(parameters)
 
         # Create the waypoint model object and store in the datastore
@@ -114,7 +111,7 @@ class WaypointResource(webapp2.RequestHandler):
         waypoint_key = waypoint.put()
 
         # Return a response with the newly created object id.
-        self.response.headers['Content-Type'] = 'application/json'
+        self.build_base_response(status_code = 201)
         response_results = {'name' : waypoint_key.id(),
                             'content_url' :
                                         self.uri_for('waypoints-resource-named',
@@ -122,18 +119,116 @@ class WaypointResource(webapp2.RequestHandler):
                                                      _full = True)}
         self.response.out.write(json.dumps(response_results))
 
+    def put(self, name):
+        '''
+        Provides the PUT verb for the waypoint resource. It allows the update
+        of an existing waypoint given its ID and updated information. Note
+        that the ID itself can't be changed. The accepted parameters
+        are:
+        
+            - latitude, longitude: Floating point coordinates for the new location of the waypoint.
+            - image_key: String corresponding to an updated image key on the BlobStore.
+
+        Any combination of the 3 parameters can be given and just the ones
+        provided will be changed in the stored object.
+
+        The accepted content types are 'application/json' and 
+        'application/x-www-form-urlencoded'
+        '''
+        # TODO: Access control
+        # Check the content type and parse the arguments appropriately
+        # Validate them as well
+        parameters = self.parse_request_body()
+        parameters['name'] = name
+        model_params = self.validate_parameters_put(parameters)
+
+        # Update the waypoint object and store it back in the datastore
+        waypoint_to_update = model_params['waypoint']
+        if 'latitude' in model_params \
+            or 'longitude' in model_params:
+            new_location = GeoPoint(latitude = parameters.get('latitude', waypoint_to_update.location.latitude),
+                                    longitude = parameters.get('longitude', waypoint_to_update.location.longitude))
+            new_location.initialize_geocells()
+            waypoint_to_update.location = new_location
+
+        if 'image_key' in model_params:
+            image_key = BlobKey(parameters['image_key'])
+            waypoint_to_update.reference_image = image_key
+
+        waypoint_to_update.put()
+
+        # Return a response with the newly created object id.
+        self.build_base_response(status_code = 200)
+        response_results = {'name' : waypoint_to_update.key.id(),
+                            'content_url' :
+                                        self.uri_for('waypoints-resource-named',
+                                                     name = waypoint_to_update.key.id(),
+                                                     _full = True)}
+        self.response.out.write(json.dumps(response_results))
+
+    def delete(self, name):
+        '''
+        Provides the DELETE verb for the waypoint resource. It allows the
+        deletion of waypoint given its ID. It deletes the resource if it exists
+        and throws an exception otherwise. It also deletes from the Blobstore
+        the reference image associated with it.
+        '''
+        # TODO: Access control
+        # Retrieve the waypoint to delete and check that it exists.
+        waypoint_to_delete = MissionWaypoint.get_by_id(name)
+        if waypoint_to_delete is None:
+            self.abort(400, detail = 'Specified resource does not exist.')
+
+        # Retrieve the blob key associated with the waypoint
+        image_to_delete = waypoint_to_delete.reference_image
+
+        # Delete the waypoint
+        waypoint_to_delete.key.delete()
+
+        # Delete the reference image
+        BlobInfo.get(image_to_delete).delete()
+
+        # TODO: Clean all submissions related to this waypoint
+        # TODO: Delete the waypoint from any existing missions
+        self.build_base_response()
+
+    ###########################################################################
+    # Utility methods
+    ###########################################################################
+
     def validate_parameters_post(self, parameters):
         '''
         Validate the POST arguments for creating a new waypoint. It checks
         existence and types and also casts the values if necessary.
         Returns a dictionary with the necessary parameters.
         '''
-        # TODO: Implement checks
         model_params = {}
-        model_params['latitude'] = float(parameters['latitude'])
-        model_params['longitude'] = float(parameters['longitude'])
+        model_params['latitude'] = parseutils.parse_float(parameters['latitude'], -90, 90)
+        model_params['longitude'] = parseutils.parse_float(parameters['longitude'], -180, 180)
+        # TODO: Implement Lexicon check on the name (and the image key?)
         model_params['name'] = parameters['name']
         model_params['image_key'] = parameters['image_key']
+
         if MissionWaypoint.get_by_id(model_params['name']) is not None:
-            self.abort(400, 'Mission waypoint with this id already exists.')
+            self.abort(400, detail = 'Specified resource already exists.')
+
         return model_params
+
+    def validate_parameters_put(self, parameters):
+        '''
+        Validate the PUT arguments for updating an existing waypoint. It checks
+        that the waypoint already exists and casts the update values if
+        necessary. It returns a dictionary with the necessary parameters.
+        '''
+        model_params = {}
+        model_params['waypoint'] = MissionWaypoint.get_by_id(parameters['name'])
+        if model_params['waypoint'] is None:
+            self.abort(400, detail = 'Specified resource does not exist.')
+        if 'latitude' in parameters:
+            model_params['latitude'] = parseutils.parse_float(parameters['latitude'], -90, 90)
+        if 'longitude' in parameters:
+            model_params['longitude'] = parseutils.parse_float(parameters['longitude'], -180, 180)
+        if 'image_key' in parameters:
+            model_params['image_key'] = parameters['image_key']
+        return model_params
+

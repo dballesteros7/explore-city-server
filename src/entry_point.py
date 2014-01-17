@@ -11,6 +11,7 @@ from webapp2_extras.routes import RedirectRoute
 from handler.api.imageservice import ImageUploadHandler, ImageUploadUrlProvider
 from handler.api.waypoints import WaypointResource
 from handler.api.missions import MissionResource
+from handler.api.submissions import SubmissionResource
 
 
 app = webapp2.WSGIApplication([
@@ -20,4 +21,6 @@ app = webapp2.WSGIApplication([
   RedirectRoute(r'/api/waypoints/<name>', handler = WaypointResource, name = 'waypoints-resource-named', strict_slash = True),
   RedirectRoute(r'/api/missions', handler = MissionResource, name = 'missions-resource', strict_slash = True),
   RedirectRoute(r'/api/missions/<name>', handler = MissionResource, name = 'missions-resource-named', strict_slash = True),
+  RedirectRoute(r'/api/submissions', handler = SubmissionResource, name = 'submissions-resource', strict_slash = True),
+  RedirectRoute(r'/api/submissions/<name>', handler = SubmissionResource, name = 'submissions-resource-named', strict_slash = True)
 ])
