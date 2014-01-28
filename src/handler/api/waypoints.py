@@ -9,10 +9,23 @@ from google.appengine.ext.blobstore import BlobInfo, BlobKey
 import json
 
 from handler.api.base_service import BaseResource
+from geocell.geopoint import GeoPoint as SimpleGeoPoint
 from models.geopoint import GeoPoint
 from models.missionwaypoint import MissionWaypoint
 from webutils import parseutils
 
+class QueryType():
+    '''
+    Class that defines the types of queries that can be made to the
+    WaypointResource in the GET verb.
+    '''
+    ############################################################################
+    # Constants
+    ############################################################################
+
+    DISTANCE_FROM_CENTER = 1
+    BOUNDING_BOX = 2
+    UNBOUNDED = 0
 
 class WaypointResource(BaseResource):
     '''
@@ -38,36 +51,36 @@ class WaypointResource(BaseResource):
                               Only waypoints close to this point will be retrieved, given a maximum distance.
         - max_distance: Maximum distance (in meters) to limit the query for waypoints.
         - max_results: Maximum number of results to return.
+        - swlongitude, swlatitude: Floating point numbers that indicate a bounding box query. 
+                                   This is the southwest corner of the box.
+        - nelongitude, nelatitude: Floating point numbers that indicate a bounding box query.
+                                   This is the northeast corner of the box.
         '''
-        # Check the kind of query to be made.
-        # Get all the relevant inputs, parse them properly
-        qry_latitude = None
-        qry_longitude = None
-        qry_max_results = None
-        if 'latitude' in self.request.arguments() and 'longitude' in self.request.arguments():
-            qry_latitude = parseutils.parse_float(self.request.get('latitude'), -90, 90)
-            qry_longitude = parseutils.parse_float(self.request.get('longitude'), -180, 180)
-        if 'max_results' in self.request.arguments():
-            qry_max_results = parseutils.parse_int(self.request.get('max_results',
-                                                                    default_value = '10'),
-                                                   1)
-        qry_max_distance = parseutils.parse_float(self.request.get('max_distance',
-                                                                   default_value = '1000'))
-
+        qry_params = self.validate_parameters_get(self.request.params)
         if name is not None:
             results = MissionWaypoint.query_by_id(name)
-        elif qry_latitude is not None and qry_longitude is not None:
+        elif qry_params['type'] == QueryType.DISTANCE_FROM_CENTER:
             # Generate a central point for query
-            centralpoint = GeoPoint(latitude = qry_latitude,
-                                    longitude = qry_longitude)
+            centralpoint = GeoPoint(latitude = qry_params['lat'],
+                                    longitude = qry_params['long'])
             centralpoint.initialize_geocells()
 
             # Execute the query
             results = MissionWaypoint.query_near(centralpoint,
-                                                 qry_max_distance,
-                                                 qry_max_results)
+                                                 qry_params['max_distance'],
+                                                 qry_params['max_results'])
+        elif qry_params['type'] == QueryType.UNBOUNDED:
+            results = MissionWaypoint.query_all(qry_params['max_results'])
+        elif qry_params['type'] == QueryType.BOUNDING_BOX:
+            southwest_corner = SimpleGeoPoint(latitude = qry_params['swlat'],
+                                              longitude = qry_params['swlong'])
+            northeast_corner = SimpleGeoPoint(latitude = qry_params['nelat'],
+                                              longitude = qry_params['nelong'])
+            results = MissionWaypoint.query_box(southwest_corner,
+                                                northeast_corner,
+                                                qry_params['max_results'])
         else:
-            results = MissionWaypoint.query_all(qry_max_results)
+            self.abort(400, detail = 'Query not recognized for this resource.')
 
         # Build the JSON response
         self.build_base_response()
@@ -196,6 +209,39 @@ class WaypointResource(BaseResource):
     ###########################################################################
     # Utility methods
     ###########################################################################
+
+    def validate_parameters_get(self, parameters):
+        '''
+        Validate the GET arguments for retrieving waypoints. It checks existence
+        and types, it also casts the values if necessary. It returns a
+        dictionary with the necessary parameters.
+        The input parameters must be a dictionary from the request WebOp object.
+        '''
+        qry_params = {}
+        if 'max_results' in parameters:
+            qry_params['max_results'] = parseutils.parse_int(parameters.get('max_results', '10'),
+                                                             1)
+        else:
+            qry_params['max_results'] = None
+        is_bounding_qry = parseutils.parse_bool(parameters.get('bounding_box', 'f'))
+        if not is_bounding_qry:
+            if 'latitude' in parameters and 'longitude' in parameters:
+                qry_params['lat'] = parseutils.parse_float(parameters['latitude'], -90, 90)
+                qry_params['long'] = parseutils.parse_float(parameters['longitude'], -180, 180)
+                qry_params['type'] = QueryType.DISTANCE_FROM_CENTER
+            else:
+                qry_params['type'] = QueryType.UNBOUNDED
+            qry_params['distance'] = parseutils.parse_float(parameters.get('max_distance', '1000'))
+        else:
+            if 'swlatitude' not in parameters or 'swlongitude' not in parameters \
+                or 'nelatitude' not in parameters or 'nelongitude' not in parameters:
+                self.abort(400, detail = 'Bounding box parameters are incomplete.')
+            qry_params['swlat'] = parseutils.parse_float(parameters['swlatitude'], -90, 90)
+            qry_params['swlong'] = parseutils.parse_float(parameters['swlongitude'], -180, 180)
+            qry_params['nelat'] = parseutils.parse_float(parameters['nelatitude'], -90, 90)
+            qry_params['nelong'] = parseutils.parse_float(parameters['nelongitude'], -180, 180)
+            qry_params['type'] = QueryType.BOUNDING_BOX
+        return qry_params
 
     def validate_parameters_post(self, parameters):
         '''

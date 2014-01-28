@@ -136,3 +136,16 @@ def simple_search(center, stored_points, max_results = 10, max_distance = 1000.0
         results = results.union(set(partial_results))
         max_resolution -= 1
     return (list(results))[:max_results]
+
+def calculate_box_center_and_distance(southwest_corner, northeast_corner):
+    '''
+    Utility function that computes a point in the center of the box defined
+    by the given corners. It also computes the great-circle distance between
+    the center and one of the corners of the box.
+    '''
+    mid_latitude = (southwest_corner.latitude + northeast_corner.latitude)/2
+    mid_longitude = (southwest_corner.longitude + northeast_corner.longitude)/2
+    from geocell.geopoint import GeoPoint
+    center = GeoPoint(latitude = mid_latitude,
+                      longitude = mid_longitude)
+    return center, distance(center, southwest_corner)

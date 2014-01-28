@@ -33,3 +33,22 @@ def parse_int(input_value, l_limit = 0, u_limit = None):
     the closest one. If the string is an invalid string then return 0.
     '''
     return int(parse_float(input_value, l_limit, u_limit))
+
+def parse_bool(input_value):
+    '''
+    Check the input string and parse it as a boolean value. The accepted
+    values for True are:
+        - True (case-insensitive)
+        - 1
+        - T or t
+    Accepted values for false are:
+        - False (case-insensitive)
+        - 0
+        - F or f
+    Any other value will raise an exception.
+    '''
+    if input_value.strip().lower() in ['true', 't', '1']:
+        return True
+    if input_value.strip().lower() in ['false', 'f', '0']:
+        return False
+    return False

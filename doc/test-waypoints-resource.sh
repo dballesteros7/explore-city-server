@@ -43,10 +43,10 @@ echo
 echo
 
 # Delete the waypoints and the missions
-python ../bin/admin_utils.py delete mission --url http://localhost:8080/api --name Test_mission_1
-python ../bin/admin_utils.py delete mission --url http://localhost:8080/api --name Test_mission_2
-python ../bin/admin_utils.py delete waypoint --url http://localhost:8080/api --name Test_waypoint_1
-python ../bin/admin_utils.py delete waypoint --url http://localhost:8080/api --name Test_waypoint_2
+#python ../bin/admin_utils.py delete mission --url http://localhost:8080/api --name Test_mission_1
+#python ../bin/admin_utils.py delete mission --url http://localhost:8080/api --name Test_mission_2
+#python ../bin/admin_utils.py delete waypoint --url http://localhost:8080/api --name Test_waypoint_1
+#python ../bin/admin_utils.py delete waypoint --url http://localhost:8080/api --name Test_waypoint_2
 
 # Test the queries
 curl -X GET http://localhost:8080/api/missions

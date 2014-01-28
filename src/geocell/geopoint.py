@@ -9,7 +9,7 @@ Created on Dec 5, 2013
 
 import hashlib
 
-from geocell import utils
+from geocell.utils import computegeocell
 
 class GeoPoint():
     '''
@@ -32,7 +32,7 @@ class GeoPoint():
         self.latitude = latitude
         self.longitude = longitude
         self.resolution = resolution
-        self.max_geocell = utils.computegeocell(self)
+        self.max_geocell = computegeocell(self)
 
 
     def __repr__(self):

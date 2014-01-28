@@ -8,17 +8,20 @@ handlers:
 - url: /stylesheets
   static_dir: stylesheets
 
-- url: /admin
-  script: entry_point.app
-  #login: admin
+- url: /javascript
+  static_dir: javascript
 
-- url: /admin/.*
-  script: entry_point.app
-  #login: admin
+# - url: /admin
+#   script: entry_point.app
+#   login: admin
+
+# - url: /admin/.*
+#   script: entry_point.app
+#   login: admin
 
 - url: /.*
   script: entry_point.app
-  #login: required
+#  login: required
 
 libraries:
 - name: webapp2
