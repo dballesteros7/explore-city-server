@@ -26,9 +26,6 @@ function updateWaypoints(dragEvent){
     var $mapSelector = $("#admin-map");
     var map = $mapSelector.data("map");
     var existingMarkers = $mapSelector.data("markers");
-    while(existingMarkers.length){
-        existingMarkers.pop().setMap(null);
-    }
     var box_bounds = map.getBounds();
     $.ajax({
         url : "/api/waypoints",
@@ -41,7 +38,11 @@ function updateWaypoints(dragEvent){
         dataType : "json",
         success : function(requestData, status, jqXHR){
             var waypoints = requestData.waypoints;
-            for(i = 0; i < waypoints.length; i++){
+            while(existingMarkers.length){
+                existingMarkers.pop().setMap(null);
+            }
+            var all = waypoints.length
+            for(var i = 0; i < all; i++){
                 var markerLocation = new google.maps.LatLng(waypoints[i].latitude,
                                                             waypoints[i].longitude);
                 var marker = new google.maps.Marker({
