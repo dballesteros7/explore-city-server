@@ -17,6 +17,50 @@ function setLocation(position){
                                                 position.coords.longitude))
 }
 
+function addWaypointToList($list, waypoint){
+    /**
+     * Function that appends the information of a waypoint to the given list
+     * element in the DOM.
+     */
+    var $span = $("<span/>", {
+        html: waypoint.name
+    });
+    var $listItem = $("<li/>", {
+        "id" : waypoint.name,
+        html : $span
+    });
+    $list.append($listItem);
+    $listItem.on("click", function(){
+       var $imageDisplay = $("#waypoint-display");
+       $imageDisplay.empty();
+       var $imageObject = $("<img/>", {
+           src : waypoint.image_url
+       })
+       $imageDisplay.append($imageObject);
+       return false;
+    });
+}
+
+function clearList($list){
+    /**
+     * Function that removes all present list items from the given list
+     * element.
+     */
+    $list.empty();
+}
+
+function addMarkerEvents(marker, waypointId){
+    /**
+     * Function that adds event listeners to the given marker, this
+     * requires the name of the marker which is assumed to be equal
+     * to the id of the list entry.
+     */
+    google.maps.event.addListener(marker, "click", function(){
+        $("#".concat(waypointId)).trigger("click");
+        return false;
+    });
+}
+
 function updateWaypoints(dragEvent){
     /**
      * Function that is triggered when the map view is changed in any way.
@@ -24,6 +68,7 @@ function updateWaypoints(dragEvent){
      * markers for them.
      */
     var $mapSelector = $("#admin-map");
+    var $waypointList = $("#waypoint-list ul")
     var map = $mapSelector.data("map");
     var existingMarkers = $mapSelector.data("markers");
     var box_bounds = map.getBounds();
@@ -41,6 +86,7 @@ function updateWaypoints(dragEvent){
             while(existingMarkers.length){
                 existingMarkers.pop().setMap(null);
             }
+            clearList($waypointList);
             var all = waypoints.length
             for(var i = 0; i < all; i++){
                 var markerLocation = new google.maps.LatLng(waypoints[i].latitude,
@@ -50,6 +96,8 @@ function updateWaypoints(dragEvent){
                 });
                 marker.setMap(map);
                 existingMarkers.push(marker);
+                addWaypointToList($waypointList, waypoints[i]);
+                addMarkerEvents(marker, waypoints[i].name);
             }
         }
     });
@@ -71,7 +119,7 @@ function initialize(){
 
     // Add listeners that update the location markers on changes of the
     // map viewport.
-    google.maps.event.addListener(map, 'idle', updateWaypoints);
+    google.maps.event.addListener(map, "idle", updateWaypoints);
 }
 
 // Initialize the map when the DOM is ready

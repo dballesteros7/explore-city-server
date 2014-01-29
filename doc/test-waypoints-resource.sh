@@ -7,7 +7,7 @@ python ../bin/admin_utils.py create mission --url http://localhost:8080/api --na
 python ../bin/admin_utils.py create mission --url http://localhost:8080/api --name Test_mission_2 Test_waypoint_1
 
 # Create a lonely waypoint
-python ../bin/admin_utils.py create waypoint --url http://localhost:8080/api --name Test_waypoint_2 --image-path ./cab_frontal.jpg --location 47.3781603,8.5480106
+python ../bin/admin_utils.py create waypoint --url http://localhost:8080/api --name Test_waypoint_2 --image-path ./dominos.jpg --location 47.37845,8.54815
 
 # Test the queries
 curl -X GET http://localhost:8080/api/missions
@@ -15,7 +15,7 @@ echo
 curl -X GET http://localhost:8080/api/waypoints
 echo
 echo
-
+exit 0
 # Check that we can update a waypoint in both location and image
 python ../bin/admin_utils.py update waypoint --url http://localhost:8080/api --name Test_waypoint_1 --image-path ./cab_frontal.jpg --location=-47.3781603,8.5480106
 
