@@ -8,11 +8,12 @@ from google.appengine.api.images import get_serving_url
 from google.appengine.ext.blobstore import BlobInfo, BlobKey
 import json
 
-from handler.api.base_service import BaseResource
 from geocell.geopoint import GeoPoint as SimpleGeoPoint
+from handler.api.base_service import BaseResource
 from models.geopoint import GeoPoint
 from models.missionwaypoint import MissionWaypoint
 from webutils import parseutils
+
 
 class QueryType():
     '''
@@ -159,8 +160,8 @@ class WaypointResource(BaseResource):
         waypoint_to_update = model_params['waypoint']
         if 'latitude' in model_params \
             or 'longitude' in model_params:
-            new_location = GeoPoint(latitude = parameters.get('latitude', waypoint_to_update.location.latitude),
-                                    longitude = parameters.get('longitude', waypoint_to_update.location.longitude))
+            new_location = GeoPoint(latitude = model_params.get('latitude', waypoint_to_update.location.latitude),
+                                    longitude = model_params.get('longitude', waypoint_to_update.location.longitude))
             new_location.initialize_geocells()
             waypoint_to_update.location = new_location
 

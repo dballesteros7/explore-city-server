@@ -17,7 +17,70 @@ function setLocation(position){
                                                 position.coords.longitude))
 }
 
-function addWaypointToList($list, waypoint){
+function displayWaypoint(event){
+    /**
+     * Function to display a given waypoint in the page. This is triggered
+     * when a waypoint is clicked on the list or on the map.
+     * The waypoint display is also a form that allows updating the waypoint.
+     */
+    // Retrieve the associated marker
+    var $mapSelector = $("#admin-map");
+    var map = $mapSelector.data("map");
+    var existingMarkers = $mapSelector.data("markers");
+    var draggableMarker = $mapSelector.data("selectedMarker");
+
+    // Retrieve the selector for the latitutde and longitude fields in the
+    // update form
+    var $waypointLng = $("#waypoint-lng");
+    var $waypointLat = $("#waypoint-lat");
+
+    // Clear the previous marker and move it to is previous location if it
+    // was moved
+    if(draggableMarker){
+        var oldMarkerOriginalLocation = new google.maps.LatLng($waypointLat.attr("value"),
+                $waypointLng.attr("value"));
+        draggableMarker.setPosition(oldMarkerOriginalLocation);
+        google.maps.event.clearListeners(draggableMarker, "drag");
+    }
+
+    // Retrieve the waypoint from the event's data.
+    var waypoint = event.data.waypoint;
+    var markerIndex = event.data.index;
+
+    // Retrieve the DOM object for the display container
+    var $imageDisplay = $("#waypoint-display");
+
+    // Set the image for the display
+    var $imageObject = $("#waypoint-display img");
+    $imageObject.attr("src", waypoint.image_url);
+
+    // Set the name for the waypoint in the form text input
+    var $waypointName = $("#waypoint-name");
+    $waypointName.text(waypoint.name);
+
+    // Set the coordinates in the appropriate fields
+    $waypointLng.attr("value", waypoint.longitude);
+    $waypointLat.attr("value", waypoint.latitude);
+    $waypointLng.val(waypoint.longitude);
+    $waypointLat.val(waypoint.latitude);
+
+    //Clear the draggable status from the previous marker
+    if(draggableMarker){
+        draggableMarker.setDraggable(false);
+    }
+
+    // Set the new marker to draggable
+    var newDraggableMarker = existingMarkers[markerIndex];
+    newDraggableMarker.setDraggable(true);
+    google.maps.event.addListener(newDraggableMarker, "drag", function(){
+        var newPosition = newDraggableMarker.getPosition();
+        $waypointLat.val(newPosition.lat());
+        $waypointLng.val(newPosition.lng());
+    });
+    $mapSelector.data("selectedMarker", newDraggableMarker);
+}
+
+function addWaypointToList($list, waypoint, waypoint_index){
     /**
      * Function that appends the information of a waypoint to the given list
      * element in the DOM.
@@ -25,20 +88,17 @@ function addWaypointToList($list, waypoint){
     var $span = $("<span/>", {
         html: waypoint.name
     });
+    var waypointId = "waypoint".concat(waypoint_index);
     var $listItem = $("<li/>", {
-        "id" : waypoint.name,
+        "id" : waypointId,
         html : $span
     });
     $list.append($listItem);
-    $listItem.on("click", function(){
-       var $imageDisplay = $("#waypoint-display");
-       $imageDisplay.empty();
-       var $imageObject = $("<img/>", {
-           src : waypoint.image_url
-       })
-       $imageDisplay.append($imageObject);
-       return false;
-    });
+    $listItem.on("click", {
+        "waypoint" : waypoint,
+        "index" : waypoint_index
+        }, displayWaypoint);
+    return waypointId;
 }
 
 function clearList($list){
@@ -57,8 +117,30 @@ function addMarkerEvents(marker, waypointId){
      */
     google.maps.event.addListener(marker, "click", function(){
         $("#".concat(waypointId)).trigger("click");
-        return false;
     });
+}
+
+function addWaypointsToPage(waypoints){
+    /**
+     * Function that adds the list of waypoints as markers in the map and
+     * list entries in the page.
+     */
+    var $mapSelector = $("#admin-map");
+    var $waypointList = $("#waypoint-list ul")
+    var map = $mapSelector.data("map");
+    var existingMarkers = $mapSelector.data("markers");
+    var all = waypoints.length;
+    for(var i = 0; i < all; i++){
+        var markerLocation = new google.maps.LatLng(waypoints[i].latitude,
+                                                    waypoints[i].longitude);
+        var marker = new google.maps.Marker({
+            position : markerLocation
+        });
+        marker.setMap(map);
+        existingMarkers.push(marker);
+        var listWaypointItemId = addWaypointToList($waypointList, waypoints[i], i);
+        addMarkerEvents(marker, listWaypointItemId);
+    }
 }
 
 function updateWaypoints(dragEvent){
@@ -67,39 +149,62 @@ function updateWaypoints(dragEvent){
      * This retrieves the closest waypoints from the server and displays
      * markers for them.
      */
+    // Define a few objects needed for all subsequent operations
     var $mapSelector = $("#admin-map");
     var $waypointList = $("#waypoint-list ul")
     var map = $mapSelector.data("map");
     var existingMarkers = $mapSelector.data("markers");
-    var box_bounds = map.getBounds();
+    var boxBounds = map.getBounds();
+
+    // Call the API for waypoints inside the current viewport
     $.ajax({
         url : "/api/waypoints",
-        data : { nelatitude : box_bounds.getNorthEast().lat(),
-                 nelongitude : box_bounds.getNorthEast().lng(),
-                 swlatitude : box_bounds.getSouthWest().lat(),
-                 swlongitude : box_bounds.getSouthWest().lng(),
+        data : { nelatitude : boxBounds.getNorthEast().lat(),
+                 nelongitude : boxBounds.getNorthEast().lng(),
+                 swlatitude : boxBounds.getSouthWest().lat(),
+                 swlongitude : boxBounds.getSouthWest().lng(),
                  bounding_box : "true"
         },
         dataType : "json",
         success : function(requestData, status, jqXHR){
+            // Retrieve the waypoints
             var waypoints = requestData.waypoints;
+
+            // Clear the existing markers and list items
             while(existingMarkers.length){
                 existingMarkers.pop().setMap(null);
             }
             clearList($waypointList);
-            var all = waypoints.length
-            for(var i = 0; i < all; i++){
-                var markerLocation = new google.maps.LatLng(waypoints[i].latitude,
-                                                            waypoints[i].longitude);
-                var marker = new google.maps.Marker({
-                    position : markerLocation
-                });
-                marker.setMap(map);
-                existingMarkers.push(marker);
-                addWaypointToList($waypointList, waypoints[i]);
-                addMarkerEvents(marker, waypoints[i].name);
-            }
+
+            // Add the new markers to the map and to the list
+            addWaypointsToPage(waypoints);
         }
+    });
+}
+
+function setupWaypointUpdatesHandler(){
+    /**
+     * Function that sets the appropriate handler for the submit button in
+     * the waypoint update form.
+     */
+    $("#waypoint-display-form").on("submit", function(event){
+        // Retrieve the waypoint currently being displayed, if any.
+        var waypointId = $("#waypoint-name").text();
+        if(waypointId){
+            $.ajax({
+                url : "/api/waypoints/".concat(waypointId),
+                accepts : "application/json",
+                dataType : "json",
+                type : "PUT",
+                contentType : "application/json",
+                data : JSON.stringify({
+                    latitude : $("#waypoint-lat").val(),
+                    longitude : $("#waypoint-lng").val()
+                })
+            })
+        }
+        event.preventDefault();
+        updateWaypoints(null);
     });
 }
 
@@ -120,6 +225,9 @@ function initialize(){
     // Add listeners that update the location markers on changes of the
     // map viewport.
     google.maps.event.addListener(map, "idle", updateWaypoints);
+
+    // Capture waypoint updates submissions
+    setupWaypointUpdatesHandler();
 }
 
 // Initialize the map when the DOM is ready

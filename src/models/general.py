@@ -24,24 +24,30 @@ class GenericModel(ndb.Model):
     ##############
 
     @classmethod
-    def query_by_id(cls, objectId):
+    def query_by_id(cls, objectId, ancestor = None):
         '''
         Query for a single object given its id, if it exists. Otherwise
         returns an empty list.
         '''
-        result = cls.get_by_id(objectId)
+        if ancestor is not None:
+            result = cls.get_by_id(objectId, parent = ancestor)
+        else:
+            result = cls.get_by_id(objectId)
         if result is not None:
             return [result]
         return []
 
     @classmethod
-    def query_all(cls, max_results):
+    def query_all(cls, max_results, ancestor = None):
         '''
         Query for all objects of this kind. Restrict the number of results
         to the given limit. None indicates return all results.
         '''
         if max_results is None:
             max_results = cls.MAX_QUERY_RESULTS
-        qry = cls.query()
+        if ancestor is not None:
+            qry = cls.query(ancestor = ancestor)
+        else:
+            qry = cls.query()
         results = qry.fetch(max_results)
         return results
