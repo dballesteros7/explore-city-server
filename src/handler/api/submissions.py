@@ -91,14 +91,14 @@ class SubmissionResource(BaseResource):
             if not parameters[param]:
                 self.abort(400, detail = 'Bad value for param %s.' % param)
 
-        reference_mission = Mission.get_by_id(parameters['mission'])
-        if reference_mission is None:
+        reference_mission = Mission.query_by_id(parameters['mission'])
+        if not reference_mission:
             self.abort(400, detail = 'The given mission id does not exist.')
-        reference_waypoint = MissionWaypoint.get_by_id(parameters['waypoint'])
-        if reference_waypoint is None:
+        reference_waypoint = MissionWaypoint.query_by_id(parameters['waypoint'])
+        if not reference_waypoint:
             self.abort(400, detail = 'The given waypoint id does not exist.')
-        model_params['mission'] = reference_mission
-        model_params['waypoint'] = reference_waypoint
+        model_params['mission'] = reference_mission[0]
+        model_params['waypoint'] = reference_waypoint[0]
 
         # TODO: Check for blob key existence
         model_params['image_key'] = BlobKey(parameters['image_key'])

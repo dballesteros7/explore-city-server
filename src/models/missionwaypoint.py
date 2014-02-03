@@ -12,6 +12,8 @@ from models.general import GenericModel
 from models.geopoint import GeoPoint
 
 
+DEFAULT_ROOT_WAYPOINT = ndb.Key('WaypointRoot', 'default_waypoint_root')
+
 class MissionWaypoint(GenericModel):
     '''
     A waypoint is basically a tuple of two objects:
@@ -43,7 +45,8 @@ class MissionWaypoint(GenericModel):
         interest_points = []
         while(len(interest_points) < max_results and max_res >= 0):
             current_geocell = central_point.geocells[max_res]
-            qry = cls.query(cls.location.geocells.IN([current_geocell]))
+            qry = cls.query(cls.location.geocells.IN([current_geocell]),
+                            ancestor = DEFAULT_ROOT_WAYPOINT)
             results = qry.fetch(None)
             ordered_results = filter(lambda x : utils.distance(x.location, central_point) < max_distance, results)
             ordered_results = sorted(ordered_results, key = lambda x : utils.distance(x.location, central_point))
@@ -57,18 +60,22 @@ class MissionWaypoint(GenericModel):
         Query for mission waypoints, given a bounding box it returns
         all results inside up to the given limit.
         '''
-        if max_results is None:
-            max_results = cls.MAX_QUERY_RESULTS
         middle_point, radius = utils.calculate_box_center_and_distance(sw_corner, ne_corner)
         middle_point_model = GeoPoint.from_geocell_point(middle_point)
-        max_res = middle_point_model.resolution
-        interest_points = []
-        while(len(interest_points) < max_results and max_res >= 0):
-            current_geocell = middle_point_model.geocells[max_res]
-            qry = cls.query(cls.location.geocells.IN([current_geocell]))
-            results = qry.fetch(None)
-            ordered_results = filter(lambda x : utils.distance(x.location, middle_point_model) < radius, results)
-            ordered_results = sorted(ordered_results, key = lambda x : utils.distance(x.location, middle_point_model))
-            interest_points = ordered_results
-            max_res -= 1
-        return interest_points[:max_results]
+        return cls.query_near(middle_point_model, radius, max_results)
+
+    @classmethod
+    def query_by_id(cls, objectId):
+        '''
+        Alias for the general query_by_id query that applies the default
+        ancestor to the query.
+        '''
+        return super(MissionWaypoint, cls).query_by_id(objectId, DEFAULT_ROOT_WAYPOINT)
+
+    @classmethod
+    def query_all(cls, max_results):
+        '''
+        Alias for the general query_all query that applies the default ancestor
+        for the query.
+        '''
+        return super(MissionWaypoint, cls).query_all(max_results, DEFAULT_ROOT_WAYPOINT)

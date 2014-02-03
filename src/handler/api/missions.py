@@ -5,10 +5,10 @@ Created on Jan 10, 2014
 @author: diegob
 '''
 from google.appengine.api.images import get_serving_url
-from google.appengine.ext.ndb.key import Key
 import json
 
-from handler.api.base_service import BaseResource
+from geocell.geopoint import GeoPoint as SimpleGeoPoint
+from handler.api.base_service import BaseResource, QueryType
 from models.geopoint import GeoPoint
 from models.mission import Mission
 from models.missionwaypoint import MissionWaypoint
@@ -40,40 +40,41 @@ class MissionResource(BaseResource):
         - max_distance: Maximum distance (in meters) to limit the query for mission starting points.
         - max_results: Maximum number of results to return.
         '''
-        # Check the kind of query to be made.
-        # Get all the relevant inputs, parse them properly
-        qry_latitude = None
-        qry_longitude = None
-        qry_max_results = None
-        if 'latitude' in self.request.arguments() and 'longitude' in self.request.arguments():
-            qry_latitude = parseutils.parse_float(self.request.get('latitude'), -90, 90)
-            qry_longitude = parseutils.parse_float(self.request.get('longitude'), -180, 180)
-        if 'max_results' in self.request.arguments():
-            qry_max_results = parseutils.parse_int(self.request.get('max_results',
-                                                                    default_value = '10'),
-                                                   1)
-        qry_max_distance = parseutils.parse_int(self.request.get('max_distance',
-                                                                 default_value = '1000'))
+        qry_params = self.validate_parameters_get(self.request.params)
 
         if name is not None:
             results = Mission.query_by_id(name)
-        elif qry_latitude is not None and qry_longitude is not None:
+        elif qry_params['type'] == QueryType.DISTANCE_FROM_CENTER:
             # Generate a central point for query
-            centralpoint = GeoPoint(latitude = qry_latitude,
-                                    longitude = qry_longitude)
+            centralpoint = GeoPoint(latitude = qry_params['lat'],
+                                    longitude = qry_params['lng'])
             centralpoint.initialize_geocells()
 
             # Get all close waypoints
             startingpoints = MissionWaypoint.query_near(centralpoint,
-                                                        qry_max_distance,
+                                                        qry_params['distance'],
                                                         None)
             results = []
             if startingpoints:
                 startingpoints_keys = [x.key for x in startingpoints]
                 # Find all missions starting in any of the given waypoints
-                results = Mission.query_by_waypoint(startingpoints_keys, qry_max_results)
+                results = Mission.query_by_waypoint(startingpoints_keys, qry_params['max_results'])
+        elif qry_params['type'] == QueryType.BOUNDING_BOX:
+            # Get all waypoints in the bounding box
+            southwest_corner = SimpleGeoPoint(latitude = qry_params['swlat'],
+                                              longitude = qry_params['swlong'])
+            northeast_corner = SimpleGeoPoint(latitude = qry_params['nelat'],
+                                              longitude = qry_params['nelong'])
+            startingpoints = MissionWaypoint.query_box(southwest_corner,
+                                                northeast_corner,
+                                                qry_params['max_results'])
+            results = []
+            if startingpoints:
+                startingpoints_keys = [x.key for x in startingpoints]
+                # Find all missions starting in any of the given waypoints
+                results = Mission.query_by_waypoint(startingpoints_keys, qry_params['max_results'])
         else:
-            results = Mission.query_all(qry_max_results)
+            results = Mission.query_all(qry_params['max_results'])
 
         # Build the JSON response
         self.build_base_response()
@@ -81,12 +82,13 @@ class MissionResource(BaseResource):
         for mission in results:
             missionObject = {'name' : mission.key.id(),
                              'waypoints' : []}
-            for waypointKey in mission.waypoints:
-                waypoint = waypointKey.get()
-                missionObject['waypoints'].append({'latitude' : waypoint.location.latitude,
-                                                   'longitude' : waypoint.location.longitude,
-                                                   'image_url' : get_serving_url(waypoint.reference_image),
-                                                   'name' : waypointKey.id()})
+            if qry_params['detailed']:
+                for waypointKey in mission.waypoints:
+                    waypoint = waypointKey.get()
+                    missionObject['waypoints'].append({'latitude' : waypoint.location.latitude,
+                                                       'longitude' : waypoint.location.longitude,
+                                                       'image_url' : get_serving_url(waypoint.reference_image),
+                                                       'name' : waypointKey.id()})
             response_results['missions'].append(missionObject)
         self.response.out.write(json.dumps(response_results))
 
@@ -163,19 +165,55 @@ class MissionResource(BaseResource):
         '''
         # TODO: Access control
         # Retrieve the mission to delete and check that it exists.
-        mission_to_delete = Mission.get_by_id(name)
-        if mission_to_delete is None:
+        mission_to_delete = Mission.query_by_id(name)
+        if not mission_to_delete:
             self.abort(400, detail = 'Specified resource does not exist.')
 
         # Delete the mission
+        mission_to_delete = mission_to_delete[0]
         mission_to_delete.key.delete()
 
         # TODO: Clean all submissions related to this mission
         self.build_base_response()
+        self.response.out.write(json.dumps(None))
 
     ###########################################################################
     # Utility methods
     ###########################################################################
+
+    def validate_parameters_get(self, parameters):
+        '''
+        Validate the GET arguments for retrieving missions. It checks existence
+        and types, it also casts the values if necessary. It returns a
+        dictionary with the necessary parameters.
+        The input parameters must be a dictionary from the request WebOp object.
+        '''
+        qry_params = {}
+        if 'max_results' in parameters:
+            qry_params['max_results'] = parseutils.parse_int(parameters.get('max_results', '10'),
+                                                             1)
+        else:
+            qry_params['max_results'] = None
+        is_bounding_qry = parseutils.parse_bool(parameters.get('bounding_box', 'false'))
+        if not is_bounding_qry:
+            if 'latitude' in parameters and 'longitude' in parameters:
+                qry_params['lat'] = parseutils.parse_float(parameters['latitude'], -90, 90)
+                qry_params['lng'] = parseutils.parse_float(parameters['longitude'], -180, 180)
+                qry_params['distance'] = parseutils.parse_float(parameters.get('max_distance', '1000'))
+                qry_params['type'] = QueryType.DISTANCE_FROM_CENTER
+            else:
+                qry_params['type'] = QueryType.UNBOUNDED
+        else:
+            if 'swlatitude' not in parameters or 'swlongitude' not in parameters \
+                or 'nelatitude' not in parameters or 'nelongitude' not in parameters:
+                self.abort(400, detail = 'Bounding box parameters are incomplete.')
+            qry_params['swlat'] = parseutils.parse_float(parameters['swlatitude'], -90, 90)
+            qry_params['swlong'] = parseutils.parse_float(parameters['swlongitude'], -180, 180)
+            qry_params['nelat'] = parseutils.parse_float(parameters['nelatitude'], -90, 90)
+            qry_params['nelong'] = parseutils.parse_float(parameters['nelongitude'], -180, 180)
+            qry_params['type'] = QueryType.BOUNDING_BOX
+        qry_params['detailed'] = parseutils.parse_bool(parameters.get('detailed', 'True'));
+        return qry_params
 
     def validate_parameters_post(self, parameters, check_existence = True):
         '''
@@ -193,21 +231,21 @@ class MissionResource(BaseResource):
 
         # TODO: Check the name against the Lexicon
         model_params['name'] = parameters['name']
-        stored_mission = Mission.get_by_id(model_params['name'])
-        if check_existence and stored_mission is not None:
+        stored_mission = Mission.query_by_id(model_params['name'])
+        if check_existence and stored_mission:
             self.abort(400, detail = 'Specified resource already exists.')
-        elif not check_existence and stored_mission is None:
+        elif not check_existence and not stored_mission:
             self.abort(400, detail = 'Specified resource does not exist.')
         elif not check_existence:
-            model_params['mission'] = stored_mission
+            model_params['mission'] = stored_mission[0]
 
         model_params['waypoints'] = []
         for waypoint_id in parameters['waypoints']:
             # TODO: Check waypoint id against the Lexicon
-            candidate_key = Key(MissionWaypoint, waypoint_id)
-            if candidate_key.get() is None:
+            candidate_waypoint = MissionWaypoint.query_by_id(waypoint_id)
+            if not candidate_waypoint:
                 self.abort(400, detail = 'Specified resource does not exist.')
-            model_params['waypoints'].append(candidate_key)
+            model_params['waypoints'].append(candidate_waypoint[0].key)
 
         return model_params
 

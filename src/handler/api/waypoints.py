@@ -9,24 +9,11 @@ from google.appengine.ext.blobstore import BlobInfo, BlobKey
 import json
 
 from geocell.geopoint import GeoPoint as SimpleGeoPoint
-from handler.api.base_service import BaseResource
+from handler.api.base_service import BaseResource, QueryType
 from models.geopoint import GeoPoint
-from models.missionwaypoint import MissionWaypoint
+from models.missionwaypoint import MissionWaypoint, DEFAULT_ROOT_WAYPOINT
 from webutils import parseutils
 
-
-class QueryType():
-    '''
-    Class that defines the types of queries that can be made to the
-    WaypointResource in the GET verb.
-    '''
-    ############################################################################
-    # Constants
-    ############################################################################
-
-    DISTANCE_FROM_CENTER = 1
-    BOUNDING_BOX = 2
-    UNBOUNDED = 0
 
 class WaypointResource(BaseResource):
     '''
@@ -63,7 +50,7 @@ class WaypointResource(BaseResource):
         elif qry_params['type'] == QueryType.DISTANCE_FROM_CENTER:
             # Generate a central point for query
             centralpoint = GeoPoint(latitude = qry_params['lat'],
-                                    longitude = qry_params['long'])
+                                    longitude = qry_params['lng'])
             centralpoint.initialize_geocells()
 
             # Execute the query
@@ -120,6 +107,7 @@ class WaypointResource(BaseResource):
         location.initialize_geocells()
 
         waypoint = MissionWaypoint(id = model_params['name'],
+                                   parent = DEFAULT_ROOT_WAYPOINT,
                                    location = location,
                                    reference_image = BlobKey(model_params['image_key']))
         waypoint_key = waypoint.put()
@@ -190,9 +178,10 @@ class WaypointResource(BaseResource):
         '''
         # TODO: Access control
         # Retrieve the waypoint to delete and check that it exists.
-        waypoint_to_delete = MissionWaypoint.get_by_id(name)
-        if waypoint_to_delete is None:
+        waypoint_to_delete = MissionWaypoint.query_by_id(name)
+        if not waypoint_to_delete:
             self.abort(400, detail = 'Specified resource does not exist.')
+        waypoint_to_delete = waypoint_to_delete[0]
 
         # Retrieve the blob key associated with the waypoint
         image_to_delete = waypoint_to_delete.reference_image
@@ -206,6 +195,7 @@ class WaypointResource(BaseResource):
         # TODO: Clean all submissions related to this waypoint
         # TODO: Delete the waypoint from any existing missions
         self.build_base_response()
+        self.response.out.write(json.dumps(None))
 
     ###########################################################################
     # Utility methods
@@ -224,15 +214,15 @@ class WaypointResource(BaseResource):
                                                              1)
         else:
             qry_params['max_results'] = None
-        is_bounding_qry = parseutils.parse_bool(parameters.get('bounding_box', 'f'))
+        is_bounding_qry = parseutils.parse_bool(parameters.get('bounding_box', 'false'))
         if not is_bounding_qry:
             if 'latitude' in parameters and 'longitude' in parameters:
                 qry_params['lat'] = parseutils.parse_float(parameters['latitude'], -90, 90)
-                qry_params['long'] = parseutils.parse_float(parameters['longitude'], -180, 180)
+                qry_params['lng'] = parseutils.parse_float(parameters['longitude'], -180, 180)
+                qry_params['distance'] = parseutils.parse_float(parameters.get('max_distance', '1000'))
                 qry_params['type'] = QueryType.DISTANCE_FROM_CENTER
             else:
                 qry_params['type'] = QueryType.UNBOUNDED
-            qry_params['distance'] = parseutils.parse_float(parameters.get('max_distance', '1000'))
         else:
             if 'swlatitude' not in parameters or 'swlongitude' not in parameters \
                 or 'nelatitude' not in parameters or 'nelongitude' not in parameters:
@@ -257,7 +247,7 @@ class WaypointResource(BaseResource):
         model_params['name'] = parameters['name']
         model_params['image_key'] = parameters['image_key']
 
-        if MissionWaypoint.get_by_id(model_params['name']) is not None:
+        if MissionWaypoint.query_by_id(model_params['name']):
             self.abort(400, detail = 'Specified resource already exists.')
 
         return model_params
@@ -269,7 +259,7 @@ class WaypointResource(BaseResource):
         necessary. It returns a dictionary with the necessary parameters.
         '''
         model_params = {}
-        model_params['waypoint'] = MissionWaypoint.get_by_id(parameters['name'])
+        model_params['waypoint'] = MissionWaypoint.query_by_id(parameters['name'])[0]
         if model_params['waypoint'] is None:
             self.abort(400, detail = 'Specified resource does not exist.')
         if 'latitude' in parameters:

@@ -8,6 +8,18 @@ Created on Jan 16, 2014
 import json
 import webapp2
 
+class QueryType():
+    '''
+    Class that defines the types of queries that can be made to geolocated
+    resources in the GET verb.
+    '''
+    ############################################################################
+    # Constants
+    ############################################################################
+
+    DISTANCE_FROM_CENTER = 1
+    BOUNDING_BOX = 2
+    UNBOUNDED = 0
 
 class BaseResource(webapp2.RequestHandler):
     '''

@@ -4,15 +4,15 @@ body { height: 100%; margin: 0; padding: 0 }
              width: 50%;
              float: left;
              }
-#waypoint-list { height: 10%;
-                 width: 48%;
-                 padding: 5px;
-                 float: left;
-                 overflow-y: scroll;
-                 }
+.list-container { height: 10%;
+                  width: 48%;
+                  padding: 5px;
+                  float: left;
+                  overflow-y: scroll;
+                }
 #waypoint-display { height: 45%;
                     width: 48%;
                     padding: 5px;
                     float: right;
                     }
-#waypoint-list li {cursor: pointer;}
+.list-container li {cursor: pointer;}

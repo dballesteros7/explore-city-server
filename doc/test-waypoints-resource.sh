@@ -9,6 +9,9 @@ python ../bin/admin_utils.py create mission --url http://localhost:8080/api --na
 # Create a lonely waypoint
 python ../bin/admin_utils.py create waypoint --url http://localhost:8080/api --name Test_waypoint_2 --image-path ./dominos.jpg --location 47.37845,8.54815
 
+# Create another mission with two waypoints
+python ../bin/admin_utils.py create mission --url http://localhost:8080/api --name Test_mission_3 Test_waypoint_1 Test_waypoint_2
+
 # Test the queries
 curl -X GET http://localhost:8080/api/missions
 echo 
