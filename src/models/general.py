@@ -24,15 +24,22 @@ class GenericModel(ndb.Model):
     ##############
 
     @classmethod
+    def default_ancestor(cls):
+        '''
+        Provides a default ancestor for the model. This must be overriden
+        by each individual model if they desire ancestor queries by default.
+        '''
+        return None
+
+    @classmethod
     def query_by_id(cls, objectId, ancestor = None):
         '''
         Query for a single object given its id, if it exists. Otherwise
         returns an empty list.
         '''
-        if ancestor is not None:
-            result = cls.get_by_id(objectId, parent = ancestor)
-        else:
-            result = cls.get_by_id(objectId)
+        if ancestor is None:
+            ancestor = cls.default_ancestor()
+        result = cls.get_by_id(objectId, parent = ancestor)
         if result is not None:
             return [result]
         return []
@@ -43,11 +50,11 @@ class GenericModel(ndb.Model):
         Query for all objects of this kind. Restrict the number of results
         to the given limit. None indicates return all results.
         '''
+        # If no ancestor was given, try with the default one
+        if ancestor is None:
+            ancestor = cls.default_ancestor()
         if max_results is None:
             max_results = cls.MAX_QUERY_RESULTS
-        if ancestor is not None:
-            qry = cls.query(ancestor = ancestor)
-        else:
-            qry = cls.query()
+        qry = cls.query(ancestor = ancestor)
         results = qry.fetch(max_results)
         return results

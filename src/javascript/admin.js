@@ -1,13 +1,16 @@
 /**
  * This defines the script file for the admin page.
  * 
+ * Requires jQuery and jQuery UI.
+ * 
  * @author Diego Ballesteros (diegob)
  */
 
 // Define a global namespace for the admin page
-(function(namespace){
+adminNS = {};
+//(function(namespace){
     // ------------------------------------------------------------------------
-    // Private properties
+    // State variables
     // ------------------------------------------------------------------------
     /**
      * Map displayed in the page
@@ -33,9 +36,13 @@
     var LINE_SYMBOL = {
         path : google.maps.SymbolPath.FORWARD_CLOSED_ARROW
     };
-
+    /**
+     * Constant string to identify waypoint items
+     */
+    var BASE_WAYPOINT_ID = "waypoint";
+    
     // ------------------------------------------------------------------------
-    // Private methods
+    // Functions that modify the mission display
     // ------------------------------------------------------------------------
     function clearDisplayedMission(){
         /**
@@ -46,38 +53,37 @@
             missionInMap.setMap(null);
             missionInMap = null;
         }
-    };
+        // Clear the list of missions and the name
+        var $missionName = $("#mission-name");
+        $missionName.text("");
+        var $waypointList = $("#waypoints-for-mission");
+        $waypointList.empty();
 
-    function handleMissionGET(requestData, status, jqXHR){
+        // Remove any listener from the remove selected button
+        $("#remove-waypoint-from-mission").off("click");
+
+        // Disable the buttons in the display form
+        $("#mission-display input[type='button']").attr("disabled", true);
+    }
+    
+    function addWaypointToMissionList($waypointList, waypointId){
         /**
-         * Draw the mission in the map contained in the requestData object. This
-         * function is called when a successful request is made to the missions
-         * API.
+         * Function to add a waypoint id to the mission's waypoint list.
+         * Each of this item is selectable and has an associated handle
+         * icon to make the list sortable as well.
          */
-        // Clear the map of previous missions
-        clearDisplayedMission();
+        var $span = $("<span/>", {
+            html : waypointId
+        });
+        var $listItem = $("<li/>", {
+            html : $span
+        });
+        $listItem.addClass("ui-selectee");
+        $listItem.prepend("<div class='handle'><span class='ui-icon ui-icon-carat-2-n-s'></span></div>");
+        $waypointList.append($listItem);
+    }
 
-        // Create a new polyline and set it in the map
-        var missionInfo = requestData.missions[0];
-        var waypointsInMission = missionInfo.waypoints;
-        var all = waypointsInMission.length;
-        missionInMap = new google.maps.Polyline({
-            icons : [ {
-                icon : LINE_SYMBOL,
-                offset : "100%"
-            } ]
-        })
-        var missionPath = missionInMap.getPath();
-        for (var i = 0; i < all; ++i) {
-            var targetWaypoint = waypointsInMission[i];
-            var targetPoint = new google.maps.LatLng(targetWaypoint.latitude,
-                    targetWaypoint.longitude);
-            missionPath.push(targetPoint);
-        }
-        missionInMap.setMap(map);
-    };
-
-    function paintMission(missionId){
+    function displayMission(missionId){
         /**
          * Paint a mission in the map given its id.
          */
@@ -86,20 +92,44 @@
             accepts : "application/json",
             dataType : "json",
             type : "GET",
-            success : handleMissionGET
+            success : function(requestData, status, jqXHR){
+                // Clear the map of previous missions
+                clearDisplayedMission();
+
+                // Create a new polyline and set it in the map
+                var missionInfo = requestData.missions[0];
+                var waypointsInMission = missionInfo.waypoints;
+                missionInMap = new google.maps.Polyline({
+                    icons : [ {
+                        icon : LINE_SYMBOL,
+                        offset : "100%"
+                    } ],
+                    map : map
+                });
+                var missionPath = missionInMap.getPath();
+                var $waypointList = $("#waypoints-for-mission");
+                // Add the list of waypoints to the mission description and the polyline
+                waypointsInMission.forEach(function(targetWaypoint){
+                    var targetPoint = new google.maps.LatLng(targetWaypoint.latitude,
+                            targetWaypoint.longitude);
+                    missionPath.push(targetPoint);
+                    addWaypointToMissionList($waypointList, targetWaypoint.name);
+                });
+
+                // Set the mission name
+                var $missionName = $("#mission-name");
+                $missionName.text(missionInfo.name);
+
+                // Activate the form buttons
+                $("#mission-display input[type='button']").attr("disabled", false);
+            },
+            //TODO: Handle error case
         });
-    };
+    }
 
-    function centerMap(position){
-        /**
-         * Set the given position as the center of the maps object registered in
-         * the admin page. The positions is expected to be a GeoLocation HTML5
-         * object.
-         */
-        map.setCenter(new google.maps.LatLng(position.coords.latitude,
-                position.coords.longitude));
-    };
-
+    // ------------------------------------------------------------------------
+    // Functions that modify the waypoint display
+    // ------------------------------------------------------------------------
     function clearWaypointDisplay(){
         /**
          * Function that clears the currently displayed waypoint.
@@ -119,93 +149,71 @@
         $waypointLat.attr("value", "");
         $waypointLng.val("");
         $waypointLat.val("");
-    };
 
-    function clearWaypointList(){
+        // Disable the form buttons
+        $("#waypoint-display input[type='button']").attr("disabled", true);
+    }
+
+    function displayWaypoint(waypointId){
         /**
-         * Function that removes all items from the waypoint list
+         * Function to display a given waypoint in the page given its ID.
+         * It requests the waypoint information from the server and displays it
+         * in a form.
+         * This function assumes that the selectedWaypointIndex was updated
+         * to the right marker.
          */
-        $("#waypoint-list ul").empty();
-    };
+        // Retrieve the request information and display it
+        $.ajax({
+            url : "api/waypoints/".concat(waypointId),
+            accepts : "application/json",
+            data : {image_size : 400}, // Request images to 400 px max.
+            dataType : "json",
+            success : function(requestData, status, jXHQR){
+                // Retrieve the waypoint from the request data.
+                var waypoint = requestData.waypoints[0];
 
-    function addWaypointToList($list, waypoint, waypointIndex){
-        /**
-         * Function that appends the information of a waypoint to the given list
-         * element in the DOM.
-         */
-        var $span = $("<span/>", {
-            html : waypoint.name
+                // Set the image for the display
+                var $imageObject = $("#waypoint-display img");
+                $imageObject.attr("src", waypoint.image_url);
+
+                // Set the name for the waypoint in the form text input
+                var $waypointName = $("#waypoint-name");
+                $waypointName.text(waypoint.name);
+
+                // Set the coordinates in the appropriate fields
+                var $waypointLng = $("#waypoint-lng");
+                var $waypointLat = $("#waypoint-lat");
+                $waypointLng.attr("value", waypoint.longitude);
+                $waypointLat.attr("value", waypoint.latitude);
+                $waypointLng.val(waypoint.longitude);
+                $waypointLat.val(waypoint.latitude);
+
+                // Set the new marker to draggable
+                var selectedMarker = waypointMarkers[selectedWaypointIndex];
+                selectedMarker.setDraggable(true);
+                selectedMarker
+                        .setIcon("http://maps.google.com/mapfiles/ms/micons/green-dot.png");
+                google.maps.event.addListener(selectedMarker, "drag", function(){
+                    var newPosition = selectedMarker.getPosition();
+                    $waypointLat.val(newPosition.lat());
+                    $waypointLng.val(newPosition.lng());
+                });
+
+                // Enable the buttons in the display form
+                $("#waypoint-display input[type='button']").attr("disabled", false);
+            },
+            // TODO: Handle the error case
         });
-        var waypointId = "waypoint".concat(waypointIndex);
-        var $listItem = $("<li/>", {
-            "id" : waypointId,
-            html : $span
-        });
-        $list.append($listItem);
-        return waypointId;
-    };
+    }
 
-    function addMarkerEvents(marker, waypointId){
-        /**
-         * Function that adds event listeners to the given marker, this requires
-         * the name of the marker which is assumed to be equal to the id of the
-         * list entry.
-         */
-        google.maps.event.addListener(marker, "click", function(){
-            $("#".concat(waypointId)).trigger("click");
-        });
-    };
-
-    function displayWaypoint(requestData, status, jqXHR){
-        /**
-         * Function to display a given waypoint in the page. This is triggered
-         * when a waypoint is clicked on the list or on the map. The waypoint
-         * display is also a form that allows updating the waypoint.
-         */
-
-        // Retrieve the waypoint from the request data.
-        var waypoint = requestData.waypoints[0];
-
-        // Set the image for the display
-        var $imageObject = $("#waypoint-display img");
-        $imageObject.attr("src", waypoint.image_url);
-
-        // Set the name for the waypoint in the form text input
-        var $waypointName = $("#waypoint-name");
-        $waypointName.text(waypoint.name);
-
-        // Set the coordinates in the appropriate fields
-        var $waypointLng = $("#waypoint-lng");
-        var $waypointLat = $("#waypoint-lat");
-        $waypointLng.attr("value", waypoint.longitude);
-        $waypointLat.attr("value", waypoint.latitude);
-        $waypointLng.val(waypoint.longitude);
-        $waypointLat.val(waypoint.latitude);
-
-        // Set the new marker to draggable
-        var selectedMarker = waypointMarkers[selectedWaypointIndex];
-        selectedMarker.setDraggable(true);
-        selectedMarker
-                .setIcon("http://maps.google.com/mapfiles/ms/micons/green-dot.png");
-        google.maps.event.addListener(selectedMarker, "drag", function(){
-            var newPosition = selectedMarker.getPosition();
-            $waypointLat.val(newPosition.lat());
-            $waypointLng.val(newPosition.lng());
-        });
-    };
-
+    // ------------------------------------------------------------------------
+    // Handlers for selections of missions and waypoints
+    // ------------------------------------------------------------------------
     function waypointSelected(event){
         /**
          * Function that listens to click events in the waypoint list and
          * displays the clicked item.
          */
-        // Retrieve the index of the clicked element
-        var target = event.currentTarget;
-        var selectedListIndex = $("#waypoint-list ul li").index(target);
-
-        // Highlight the selected item
-        $(target).css("background-color", "#0D8800");
-
         // First clear the selection of the previous marker if any
         if (selectedWaypointIndex > -1) {
             var $waypointLng = $("#waypoint-lng");
@@ -215,65 +223,185 @@
                     .attr("value"), $waypointLng.attr("value"));
             selectedMarker.setPosition(oldMarkerOriginalLocation);
             selectedMarker
-                    .setIcon("http://maps.google.com/mapfiles/ms/micons/red-dot.png")
+                    .setIcon("http://maps.google.com/mapfiles/ms/micons/red-dot.png");
             google.maps.event.clearListeners(selectedMarker, "drag");
             selectedMarker.setDraggable(false);
-            var $previousSelectedItem = $("#waypoint-list ul li").eq(
-                    selectedWaypointIndex);
-            $previousSelectedItem.css("background-color", "#FFF");
         }
 
-        // Mark a new marker as selected
+        // Retrieve the index of the clicked element, set it as selected
+        var selectedListIndex = $("#waypoint-list ul li").index(event.currentTarget);
         selectedWaypointIndex = selectedListIndex;
 
         // Retrieve the information from this marker and display it
-        var waypointId = $(target).text();
-        $.ajax({
-            url : "api/waypoints/".concat(waypointId),
-            accepts : "application/json",
-            dataType : "json",
-            success : displayWaypoint
-        });
-    };
+        var waypointId = $(event.currentTarget).find("span").text();
+        displayWaypoint(waypointId);
+
+        // Move to the waypoints tab if not already there
+        window.location.hash = $("#waypoint-tab a").attr("href");
+    }
 
     function missionSelected(event){
         /**
-         * Function that listens to click events on the mission list and
-         * displays the clicked item.
+         * Function that is triggered when a mission item is clicked on the
+         * mission list. It displays the given mission.
          */
-        var target = event.currentTarget;
-        // Highlight the selected item, clear highlight from all the others
-        $("#mission-list ul li").css("background-color", "#FFF");
-        $(target).css("background-color", "#0D8800");
-        // Display the mission in the map
-        var missionId = $(target).text();
-        paintMission(missionId);
-    };
+        // The event was triggered from a list element whose text contains
+        // the mission id.
+        var missionId = event.currentTarget.textContent;
+        displayMission(missionId);
+    }
 
-    function addWaypointsToPage(waypoints){
+    function missionOrWaypointSelected(event){
         /**
-         * Function that adds the list of waypoints as markers in the map and
-         * list entries in the page.
+         * Function that handles the selection of an item in the mission and
+         * waypoint lists. It triggers the appropriate response depending on
+         * the type of object that was selected (i.e. mission or waypoint).
          */
-        // Retrieve the list for waypoints
-        var $waypointList = $("#waypoint-list ul");
-
-        // Add all the waypoints to the map and list
-        var all = waypoints.length;
-        for (var i = 0; i < all; i++) {
-            var markerLocation = new google.maps.LatLng(waypoints[i].latitude,
-                    waypoints[i].longitude);
-            var marker = new google.maps.Marker({
-                position : markerLocation,
-                icon : "http://maps.google.com/mapfiles/ms/micons/red-dot.png"
-            });
-            marker.setMap(map);
-            waypointMarkers.push(marker);
-            var listWaypointItemId = addWaypointToList($waypointList,
-                    waypoints[i], i);
-            addMarkerEvents(marker, listWaypointItemId);
+        // The event is expected to bubble up to the li element.
+        // This is recorded in target, from this it is possible to know
+        // which list is the one that is being interacted with.
+        var $targetLi = $(event.currentTarget);
+        var listId = $targetLi.parents("div").attr("id");
+        // The current target was the element that initiated the event
+        // that will be a li item. Set it as selected and remove selection
+        // from other elements.
+        $targetLi.addClass("ui-selected");
+        $targetLi.siblings().removeClass("ui-selected");
+        // Trigger the appropiate function for the event
+        switch (listId) {
+        case "mission-list":
+            missionSelected(event);
+            break;
+        case "waypoint-list":
+            waypointSelected(event);
+            break;
+        default:
+            break;
         }
+    }
+
+    // ------------------------------------------------------------------------
+    // Functions that update the waypoint list and markers
+    // ------------------------------------------------------------------------
+    function addWaypointToListAndMap(waypoint, waypointIndex){
+        /**
+         * Function that adds the given waypoint to the list display 
+         * in the page and as a marker in the map. The this object is expected
+         * to be equal to the waypoint list.
+         * The list item is given an id equal to the
+         * BASE_WAYPOINT_ID plus the index of the element in the source array.
+         * And the marker has an added listener that triggers a click on the
+         * corresponding list item.
+         */
+        // Define the span with the waypoint name and then create
+        // the containing list item with the corresponding id.
+        var waypointId = BASE_WAYPOINT_ID.concat(waypointIndex);
+        var $span = $("<span/>", {
+            html : waypoint.name
+        });
+        var $listItem = $("<li/>", {
+            html : $span,
+            id : waypointId
+        });
+        // Make it selectable and add it to the list
+        $listItem.addClass("ui-selectee");
+        this.append($listItem);
+        // Create a new marker with the waypoint location and add it to the map
+        var markerLocation = new google.maps.LatLng(waypoint.latitude,
+                waypoint.longitude);
+        var marker = new google.maps.Marker({
+            position : markerLocation,
+            icon : "http://maps.google.com/mapfiles/ms/micons/red-dot.png",
+            map : map
+        });
+        // Add the marker to the marker list and add the corresponding listener
+        waypointMarkers.push(marker);
+        google.maps.event.addListener(marker, "click", function(){
+            $("#".concat(waypointId)).trigger("click");
+        });
+    }
+
+    function clearWaypointListAndMarkers(){
+        /**
+         * Function that removes all items from the waypoint list and the markers
+         * from the map.
+         */
+        // Clear the list
+        $("#waypoint-list ul").empty();
+        // Deselect any index
+        selectedWaypointIndex = -1;
+        // Clean the map
+        waypointMarkers.forEach(function(marker){
+            marker.setMap(null);
+        });
+        // Clean the marker array
+        waypointMarkers.length = 0;
+    }
+
+    // ------------------------------------------------------------------------
+    // Functions that update the mission list
+    // ------------------------------------------------------------------------
+    function addMissionToList(mission){
+        /**
+         * Function to add each mission id to the list given in the this object.
+         */
+        var $span = $("<span/>", {
+            html : mission.name
+        });
+        var $listItem = $("<li/>", {
+            html : $span,
+        });
+        $listItem.addClass("ui-selectee");
+        this.append($listItem);
+    }
+
+    function clearMissionList(){
+        /**
+         * Function to clear the current list of missions in the page.
+         */
+        $("#mission-list ul").empty();
     };
+
+    // ------------------------------------------------------------------------
+    // Functions to handle the update of the mission and waypoint lists
+    // ------------------------------------------------------------------------
+    function updateMissions(){
+        /**
+         * Function that retrieves the list of missions that start inside the
+         * current map viewport and adds them to the mission list in the page.
+         */
+        // Define a few objects needed for all subsequent operations
+        var boxBounds = map.getBounds();
+
+        // Call the API for missions starting inside the current viewport
+        $.ajax({
+            url : "/api/missions",
+            data : {
+                nelatitude : boxBounds.getNorthEast().lat(),
+                nelongitude : boxBounds.getNorthEast().lng(),
+                swlatitude : boxBounds.getSouthWest().lat(),
+                swlongitude : boxBounds.getSouthWest().lng(),
+                bounding_box : "true",
+                detailed: "false"
+            },
+            dataType : "json",
+            beforeSend : $.blockUI,
+            complete: $.unblockUI,
+            success : function(requestData, status, jqXHR){
+                // Retrieve the missions
+                var missions = requestData.missions;
+
+                // Clear the current mission list
+                clearMissionList();
+                // Clear the mission display
+                clearDisplayedMission();
+
+                // Add the missions to the list
+                var $list = $("#mission-list ul");
+                missions.forEach(addMissionToList, $list);
+            }
+        });
+    }
 
     function updateWaypoints(){
         /**
@@ -295,80 +423,23 @@
                 bounding_box : "true"
             },
             dataType : "json",
+            beforeSend : $.blockUI,
+            complete: $.unblockUI,
             success : function(requestData, status, jqXHR){
                 // Retrieve the waypoints
                 var waypoints = requestData.waypoints;
 
                 // Clear the current display
                 clearWaypointDisplay();
-
                 // Clear the existing markers and list items
-                while (waypointMarkers.length) {
-                    waypointMarkers.pop().setMap(null);
-                }
-                selectedWaypointIndex = -1;
-                clearWaypointList();
+                clearWaypointListAndMarkers();
 
                 // Add the new markers to the map and to the list
-                addWaypointsToPage(waypoints);
+                var $waypointList = $("#waypoint-list ul");
+                waypoints.forEach(addWaypointToListAndMap, $waypointList);
             }
         });
-    };
-
-    function clearMissionList(){
-        /**
-         * Function to clear the current list of missions in the page.
-         */
-        $("#mission-list ul").empty();
-    };
-
-    function addMissionToList(mission){
-        /**
-         * Function that adds the given mission to the list display in the page.
-         */
-        var $list = $("#mission-list ul");
-        var $span = $("<span/>", {
-            html : mission.name
-        });
-        var $listItem = $("<li/>", {
-            html : $span
-        });
-        $list.append($listItem);
-    };
-
-    function updateMissions(){
-        /**
-         * Function that retrieves the list of missions that start inside the
-         * current map viewport and adds them to the mission list in the page.
-         */
-        // Define a few objects needed for all subsequent operations
-        var boxBounds = map.getBounds();
-
-        // Call the API for missions starting inside the current viewport
-        $.ajax({
-            url : "/api/missions",
-            data : {
-                nelatitude : boxBounds.getNorthEast().lat(),
-                nelongitude : boxBounds.getNorthEast().lng(),
-                swlatitude : boxBounds.getSouthWest().lat(),
-                swlongitude : boxBounds.getSouthWest().lng(),
-                bounding_box : "true"
-            },
-            dataType : "json",
-            success : function(requestData, status, jqXHR){
-                // Retrieve the missions
-                var missions = requestData.missions;
-
-                // Clear the current mission list
-                clearMissionList();
-                // Clear the mission display
-                clearDisplayedMission();
-
-                // Add the missions to the list
-                missions.forEach(addMissionToList);
-            }
-        });
-    };
+    }
 
     function updateWaypointsAndMissions(){
         /**
@@ -377,14 +448,18 @@
          */
         updateMissions();
         updateWaypoints();
-    };
+    }
 
-    function setupWaypointUpdatesHandler(){
+    // ------------------------------------------------------------------------
+    // Setup the handlers for the waypoint and mission forms
+    // ------------------------------------------------------------------------
+
+    function setupWaypointFormHandlers(){
         /**
-         * Function that sets the appropriate handler for the submit button in
-         * the waypoint update form.
+         * Function that handles the different actions on the waypoint form.
          */
-        $("#waypoint-display-form").on("submit", function(event){
+        // Option to update the waypoint location
+        $("#submit-waypoint-update").on("click", function(event){
             // Retrieve the waypoint currently being displayed, if any.
             var waypointId = $("#waypoint-name").text();
             if (waypointId) {
@@ -396,21 +471,15 @@
                     contentType : "application/json",
                     data : JSON.stringify({
                         latitude : $("#waypoint-lat").val(),
-                        longitude : $("#waypoint-lng").val()
+                        longitude : $("#waypoint-lng").val(),
                     }),
-                    success : updateWaypointsAndMissions
+                    success : updateWaypointsAndMissions,
+                    //TODO: On error, announce that the update was not possible
                 });
-
             }
-            event.preventDefault();
         });
-    };
-
-    function setupWaypointDeleteHandler(){
-        /**
-         * Function that handles the deletion of a waypoint being displayed in
-         * the update form.
-         */
+      
+        // Option to delete the currently displayed waypoint
         $("#delete-waypoint").on("click", function(event){
             var waypointId = $("#waypoint-name").text();
             if (waypointId) {
@@ -420,52 +489,167 @@
                     dataType : "json",
                     type : "DELETE",
                     success : updateWaypointsAndMissions
+                    //TODO: On error, announce that the delete was not possible
                 });
             }
+        });
+    };
+
+    function setupMissionFormHandlers(){
+        /**
+         * Function that handles the different actions on the mission form.
+         */
+        // Add item to list
+        $("#add-waypoint-to-mission").on("click", function(event){
+            var inputWaypoint = $("#new-waypoint-for-mission").val();
+            if(inputWaypoint){
+                $.ajax({
+                    url : "/api/waypoints/".concat(inputWaypoint),
+                    accepts : "application/json",
+                    dataType : "json",
+                    type : "GET",
+                    success : function(requestData, status, jqXHR){
+                        if(requestData.waypoints.length){
+                            addWaypointToMissionList($("#waypoints-for-mission"), requestData.waypoints[0].name);
+                        } else {
+                            // TODO: Indicate that there is no waypoint with
+                            // that id.
+                        }
+                        // Clear the name from the form
+                        $("#new-waypoint-for-mission").val("");
+                    },
+                    // TODO: Handle error case
+                });
+            } else {
+                // TODO: Warn of empty id names
+            }
+        });
+
+        // Remove item from list, this adds a handler with closure data
+        // everytime the selection changes (Seems expensive, check if it's
+        // better to just keep a local variable somewhere, although
+        // it looks damn cool to use this closure).
+        $("#waypoints-for-mission").on("selectablestop", function(){
+            // First clear any previous listener
+            $("#remove-waypoint-from-mission").off("click");
+            var context = this;
+            $("#remove-waypoint-from-mission").on("click", function(event){
+                $(".ui-selected", context).each(function(){
+                    $(this).remove();
+                });
+            });
+        });
+
+        // Delete mission
+        $("#delete-mission").on("click", function(event){
+            var missionId = $("#mission-name").text();
+            if (missionId) {
+                $.ajax({
+                    url : "/api/missions/".concat(missionId),
+                    accepts : "application/json",
+                    dataType : "json",
+                    type : "DELETE",
+                    success : updateWaypointsAndMissions,
+                    // TODO: Handle error case
+                });
+            } else {
+                // This should not happen, if the mission Id is empty then
+                // the buttons should be disabled.
+            }
+        });
+
+        // Update mission
+        $("#submit-mission-update").on("click", function(event){
             event.preventDefault();
+            var missionId = $("#mission-name").text();
+            if(missionId){
+                var waypointsForMission = new Array();
+                $("#waypoints-for-mission li").each(function(index, ele){
+                    var waypointId = $(ele).text();
+                    waypointsForMission.push(waypointId);
+                });
+                if(waypointsForMission.length){
+                    $.ajax({
+                        url : "/api/missions/".concat(missionId),
+                        accepts : "application/json",
+                        contentType : "application/json",
+                        dataType : "json",
+                        type : "PUT",
+                        data : JSON.stringify({
+                            waypoints : waypointsForMission
+                        }),
+                        success : updateWaypointsAndMissions,
+                        // TODO: Handle error case
+                    });
+                } else {
+                    // TODO: Warn about empty list of waypoints
+                }
+            } else {
+                // This should not happen, if the mission Id is empty then
+                // the buttons should be disabled.
+            }
         });
     };
 
     // ------------------------------------------------------------------------
-    // Public properties
+    // Map-related functions
     // ------------------------------------------------------------------------
+
+    function centerMap(position){
+        /**
+         * Set the given position as the center of the maps object registered in
+         * the admin page. The positions is expected to be a GeoLocation HTML5
+         * object.
+         */
+        map.setCenter(new google.maps.LatLng(position.coords.latitude,
+                position.coords.longitude));
+    };
 
     // ------------------------------------------------------------------------
     // Public methods
     // ------------------------------------------------------------------------
 
-    namespace.initialize = function(){
+    adminNS.initialize = function(){
         /**
          * Initialization function for the admin page.
          */
-        // Initialize the map in the page
+        // Initialize the map object and set it in its corresponding div.
+        // Also initialize the array that holds the list of waypoint markers
+        // in the map.
         var mapOptions = {
             zoom : 15
         };
         map = new google.maps.Map($("#admin-map")[0], mapOptions);
         waypointMarkers = new Array();
 
-        // Retrieve the location and center the map to this location
+        // Retrieve the user's location and center the map to this location
         utilsNS.retrieveLocation(centerMap);
 
         // Add a listener that updates the waypoints markers and missions
         // upon changes to the map viewport
         google.maps.event.addListener(map, "idle", updateWaypointsAndMissions);
 
-        // Add listener for click events on the waypoint list
-        var $waypointList = $("#waypoint-list ul");
-        $waypointList.on("click", "li", waypointSelected);
+        // Add a listener for the waypoint and mission lists
+        $(".inner-list").on("click", "li", missionOrWaypointSelected);
 
-        // Add listener for click events on the mission list
-        var $missionList = $("#mission-list ul");
-        $missionList.on("click", "li", missionSelected);
+        // Make the waypoint list in a mission sortable and selectable
+        $("#waypoints-for-mission").sortable({ handle: ".handle"});
+        $("#waypoints-for-mission").selectable();
 
         // Setup the listener for waypoint update and delete actions
-        setupWaypointUpdatesHandler();
-        setupWaypointDeleteHandler();
+        setupWaypointFormHandlers();
+
+        // Setup the listener for the buttons in the mission form
+        setupMissionFormHandlers();
+
+        // For development testing
+        $(document.body).on("click", function(ev){
+            console.log(ev.target);
+            console.log(ev.currentTarget);
+        });
     };
 
-}(window.adminNS = window.adminNS || {}));
+//}(window.adminNS = window.adminNS || {}));
 
 // Initialize the map when the DOM is ready
 $(window).ready(adminNS.initialize);

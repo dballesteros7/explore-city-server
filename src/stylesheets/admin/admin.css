@@ -1,18 +1,164 @@
 html { height: 100% }
 body { height: 100%; margin: 0; padding: 0 }
+
+/* Fonts */
+body {font: 14px/18px "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", sans-serif;}
+
+/* Define layout of the main elements as two columns */
 #admin-map { height: 100%;
              width: 50%;
              float: left;
-             }
-.list-container { height: 10%;
-                  width: 48%;
-                  padding: 5px;
-                  float: left;
-                  overflow-y: scroll;
-                }
-#waypoint-display { height: 45%;
-                    width: 48%;
-                    padding: 5px;
-                    float: right;
+            }
+
+#tabs {  height: 100%;
+         width: 50%;
+         float: left;
+        }
+
+/* Define the tabs for waypoints and missions */
+
+.tabbed-container { position: relative;
+                    z-index: 0; }
+.tabbed-container > div { display: inline; }
+.tabbed-container > div > a { position: relative; 
+                              text-decoration: none; 
+                              color: black; 
+                              background: white; 
+                              display: block; 
+                              float: left; 
+                              padding: 5px 10px; 
+                              border: 1px solid #ccc;
+                              border-bottom: 1px solid white;}
+.tabbed-container > div:not(:first-child) > a { margin-left: -1px; }
+.tabbed-container > div:not(:target) > a {border-bottom: 0px;}   
+.tabbed-container > div:target > a { background: white;}
+.tabbed-container > div > div { background: white; 
+                                z-index: -2; 
+                                left: 0; top: 29px; bottom: 0; right: 0; 
+                                border: 1px solid #ccc; }
+.tabbed-container > div:not(:target) > div { position: absolute }
+.tabbed-container > div:target > div { position: absolute; 
+                                       z-index: -1; }
+
+/* Position the content inside the tabs */
+
+.inner-list { height: 250px;
+              width: 100%;
+              overflow-y: scroll }
+
+.details-container { height: 45%;
+                     width: 100%;
+                     float: left;
+                     border-top: 1px solid #ccc;
+                     padding-left: 20px;
                     }
-.list-container li {cursor: pointer;}
+
+/* Make it pretty */
+
+.inner-list ul { list-style-type: circle;
+                 list-style-position: outside}
+
+.update-form ul { list-style-type:none;
+                  list-style-position:outside;
+                  margin:0px;
+                  padding:0px;
+                }
+.update-form li { padding:12px;
+                  border-bottom:1px solid #eee;
+                  position:relative;
+                  }
+.update-form li:last-child {
+    border-bottom: 0px;
+}
+
+.update-form label {
+    margin-top: 3px;
+    width: 120px;
+    padding:3px;
+    display: inline-block;
+}
+
+.update-form input[type="text"] {
+    height:20px;
+    width:220px;
+    padding:2px 2px;
+    transition: padding .25s
+}
+
+.update-form input {
+    height:25px;
+    width:120px;
+    padding:2px 2px;
+    border:1px solid #aaa;
+    box-shadow: 0px 0px 3px #ccc, 0 10px 15px #eee inset;
+    border-radius:2px;
+}
+
+.update-form input[type="text"]:focus{
+    background: #fff;
+    border:1px solid #555;
+    box-shadow: 0 0 3px #aaa;
+    padding-right:70px;
+}
+
+.update-form input[type="button"]{
+    height: 30px;
+    width: 160px;
+    border-radius: 3px;
+    color: white;
+    padding: 6px 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.update-form input[type="button"]:hover {
+    opacity:.85;
+    cursor: pointer;
+}
+
+.update-form input[type="button"].constructive {
+    background-color: #68b12f;
+    background: -webkit-linear-gradient(top, #68b12f, #50911e);
+    border: 1px solid #509111;
+    border-bottom: 1px solid #5b992b;
+    box-shadow: inset 0 1px 0 0 #9fd574;
+    text-shadow: 0 -1px 0 #396715;
+}
+
+.update-form input[type="button"].constructive:active {
+    border: 1px solid #20911e;
+    box-shadow: 0 0 10px 5px #356b0b inset;
+}
+
+.update-form input[type="button"].destructive {
+    background-color: #d11919;
+    background: linear-gradient(top, #d11919, #660000);
+    background: -webkit-linear-gradient(top, #d11919, #660000);
+    border: 1px solid #660000;
+    border-bottom: 1px solid #b80000;
+    box-shadow: inset 0 1px 0 0 #db4d4d;
+    text-shadow: 0 -1px 0 #a30000;
+}
+
+.update-form input[type="button"].destructive:active {
+    border: 1px solid #d11919;
+    box-shadow: 0 0 10px 5px #a30000 inset;
+}
+
+/* Selectable lists */
+
+.ui-selectee { cursor: pointer; }
+.ui-selecting { background: #50911e; }
+.ui-selected { background: #9fd574; color: white; }
+.ui-selecting .handle { background: #50911e; }
+.ui-selected .handle { background: #9fd574; }
+
+/* Selectable and sortable list for waypoints in a mission */
+
+#waypoints-for-mission .handle { position: absolute;
+                                 left: 0; top: 4px; bottom: 0; padding:8px;
+                                 height: 16px;}
+#waypoints-for-mission li { padding-left: 42px; }
+#waypoints-for-mission { height : 250px;
+                         overflow-y: scroll; }
+

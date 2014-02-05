@@ -112,9 +112,10 @@ class MissionResource(BaseResource):
         model_params = self.validate_parameters_post(parameters)
 
         # Build the mission object and store it in the datastore
-        mission = Mission(id = model_params['name'],
-                          startWaypoint = model_params['waypoints'][0],
-                          waypoints = model_params['waypoints'])
+        mission = Mission.build(id = model_params['name'],
+                                start_waypoint = model_params['waypoints'][0],
+                                waypoints = model_params['waypoints'])
+
         mission_key = mission.put()
 
         # Return a response with the newly created object id.
@@ -146,7 +147,7 @@ class MissionResource(BaseResource):
 
         # Build the mission object and store it in the datastore
         mission_to_update = model_params['mission']
-        mission_to_update.startWaypoint = model_params['waypoints'][0]
+        mission_to_update.start_waypoint = model_params['waypoints'][0]
         mission_to_update.waypoints = model_params['waypoints']
         mission_to_update.put()
 
@@ -171,7 +172,7 @@ class MissionResource(BaseResource):
 
         # Delete the mission
         mission_to_delete = mission_to_delete[0]
-        mission_to_delete.key.delete()
+        mission_to_delete.delete()
 
         # TODO: Clean all submissions related to this mission
         self.build_base_response()

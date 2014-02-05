@@ -11,7 +11,7 @@ import json
 from geocell.geopoint import GeoPoint as SimpleGeoPoint
 from handler.api.base_service import BaseResource, QueryType
 from models.geopoint import GeoPoint
-from models.missionwaypoint import MissionWaypoint, DEFAULT_ROOT_WAYPOINT
+from models.missionwaypoint import MissionWaypoint
 from webutils import parseutils
 
 
@@ -74,9 +74,12 @@ class WaypointResource(BaseResource):
         self.build_base_response()
         response_results = {'waypoints' : []}
         for result in results:
+            options = {}
+            if 'image_size' in qry_params:
+                options['size'] = qry_params['image_size']
             response_results['waypoints'].append({'latitude' : result.location.latitude,
                                                   'longitude' : result.location.longitude,
-                                                  'image_url' : get_serving_url(result.reference_image),
+                                                  'image_url' : get_serving_url(result.reference_image, **options),
                                                   'name' : result.key.id()})
         self.response.out.write(json.dumps(response_results))
 
@@ -106,10 +109,10 @@ class WaypointResource(BaseResource):
                             longitude = model_params['longitude'])
         location.initialize_geocells()
 
-        waypoint = MissionWaypoint(id = model_params['name'],
-                                   parent = DEFAULT_ROOT_WAYPOINT,
-                                   location = location,
-                                   reference_image = BlobKey(model_params['image_key']))
+        waypoint = MissionWaypoint.build(id = model_params['name'],
+                                         location = location,
+                                         reference_image = 
+                                            BlobKey(model_params['image_key']))
         waypoint_key = waypoint.put()
 
         # Return a response with the newly created object id.
@@ -183,14 +186,8 @@ class WaypointResource(BaseResource):
             self.abort(400, detail = 'Specified resource does not exist.')
         waypoint_to_delete = waypoint_to_delete[0]
 
-        # Retrieve the blob key associated with the waypoint
-        image_to_delete = waypoint_to_delete.reference_image
-
         # Delete the waypoint
-        waypoint_to_delete.key.delete()
-
-        # Delete the reference image
-        BlobInfo.get(image_to_delete).delete()
+        waypoint_to_delete.delete()
 
         # TODO: Clean all submissions related to this waypoint
         # TODO: Delete the waypoint from any existing missions
@@ -210,10 +207,12 @@ class WaypointResource(BaseResource):
         '''
         qry_params = {}
         if 'max_results' in parameters:
-            qry_params['max_results'] = parseutils.parse_int(parameters.get('max_results', '10'),
+            qry_params['max_results'] = parseutils.parse_int(parameters['max_results'],
                                                              1)
         else:
             qry_params['max_results'] = None
+        if 'image_size' in parameters:
+            qry_params['image_size'] = parseutils.parse_int(parameters['image_size'], 100)
         is_bounding_qry = parseutils.parse_bool(parameters.get('bounding_box', 'false'))
         if not is_bounding_qry:
             if 'latitude' in parameters and 'longitude' in parameters:

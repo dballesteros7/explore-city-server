@@ -60,6 +60,7 @@ body {font: 14px/21px "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", san
     box-shadow: 0px 0px 3px #ccc, 0 10px 15px #eee inset;
     border-radius:2px;
 }
+
 .mission_form input:focus{
     background: #fff;
     border:1px solid #555;

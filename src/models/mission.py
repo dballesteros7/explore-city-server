@@ -7,8 +7,8 @@ Created on Jan 7, 2014
 from google.appengine.ext import ndb
 
 from models.general import GenericModel
-from models.missionwaypoint import MissionWaypoint
 
+_DEFAULT_MISSION_ROOT = ndb.Key('MissionRoot', 'default')
 
 class Mission(GenericModel):
     '''
@@ -27,9 +27,42 @@ class Mission(GenericModel):
     ##############
     # Properties #
     ##############
-    startWaypoint = ndb.KeyProperty(kind = MissionWaypoint, required = True)
-    waypoints = ndb.KeyProperty(kind = MissionWaypoint, repeated = True)
+    start_waypoint = ndb.KeyProperty(kind = 'MissionWaypoint', required = True)
+    waypoints = ndb.KeyProperty(kind = 'MissionWaypoint', repeated = True)
 
+    ###########################################################################
+    # Model methods
+    ###########################################################################
+    def remove_waypoint(self, waypointKey):
+        '''
+        Delete the given waypoint from the mission.
+        This method assumes that the waypoint exists in the mission. It
+        expects a waypoint key as argument.
+        '''
+        self.waypoints.remove(waypointKey)
+        if len(self.waypoints):
+            self.start_waypoint = self.waypoints[0]
+            self.put()
+        else:
+            self.delete()
+
+    def delete(self):
+        '''
+        Delete the given mission from the datastore.
+        '''
+        self.key.delete()
+
+    ###########################################################################
+    # Custom constructors
+    ###########################################################################
+    @classmethod
+    def build(cls, **kwargs):
+        '''
+        Create an instance of the mission class with the default ancestor in
+        the key.
+        '''
+        return cls(parent = cls.default_ancestor(),
+                   **kwargs)
     ##############
     # Queries    #
     ##############
@@ -41,6 +74,24 @@ class Mission(GenericModel):
         '''
         if max_results is None:
             max_results = cls.MAX_QUERY_RESULTS
-        qry = cls.query(cls.startWaypoint.IN(candidate_waypoints))
+        qry = cls.query(cls.start_waypoint.IN(candidate_waypoints),
+                        ancestor = cls.default_ancestor())
         results = qry.fetch(max_results)
         return results
+
+    @classmethod
+    def query_contains_waypoint(cls, waypoint_key):
+        '''
+        Query for missions that contain the given waypoint at any position
+        in the mission.
+        '''
+        qry = cls.query(cls.waypoints == waypoint_key,
+                        ancestor = cls.default_ancestor());
+        return qry.fetch();
+
+    @classmethod
+    def default_ancestor(cls):
+        '''
+        Override the default ancestor for missions.
+        '''
+        return _DEFAULT_MISSION_ROOT

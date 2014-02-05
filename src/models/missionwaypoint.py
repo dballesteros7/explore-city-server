@@ -6,13 +6,14 @@ Created on Dec 9, 2013
 @author: diegob
 '''
 from google.appengine.ext import ndb
+from google.appengine.ext.blobstore.blobstore import BlobInfo
 
 from geocell import utils
+from models.mission import Mission
 from models.general import GenericModel
 from models.geopoint import GeoPoint
 
-
-DEFAULT_ROOT_WAYPOINT = ndb.Key('WaypointRoot', 'default_waypoint_root')
+_DEFAULT_MISSION_WAYPOINT_ROOT = ndb.Key('MissionWaypointRoot', 'default')
 
 class MissionWaypoint(GenericModel):
     '''
@@ -27,6 +28,43 @@ class MissionWaypoint(GenericModel):
     ##############
     location = ndb.StructuredProperty(GeoPoint, required = True)
     reference_image = ndb.BlobKeyProperty(required = True)
+
+    ###########################################################################
+    # Model methods
+    ###########################################################################
+    def delete(self):
+        '''
+        Delete the given waypoint from the datastore. This is done in the following
+        order.
+        - Delete all submissions related to this waypoint. 
+            Discount the correspnding score from the users.
+        - Delete the waypoint from all missions that contain it. 
+            If a mission is empty after this operation then delete it.
+        - Delete the associated image from the blobstore.
+        '''
+        # TODO: Submission deletion
+
+        # Deletion of related missions
+        related_missions = Mission.query_contains_waypoint(self.key)
+        map(lambda x: x.remove_waypoint(self.key), related_missions)
+
+        # Deletion the associated image
+        BlobInfo.get(self.reference_image).delete()
+
+        # Delete myself
+        self.key.delete()
+
+    ###########################################################################
+    # Custom constructors
+    ###########################################################################
+    @classmethod
+    def build(cls, **kwargs):
+        '''
+        Create an instance of the waypoint class with the default ancestor in
+        the key.
+        '''
+        return cls(parent = cls.default_ancestor(),
+                   **kwargs)
 
     ##############
     # Queries    #
@@ -46,7 +84,7 @@ class MissionWaypoint(GenericModel):
         while(len(interest_points) < max_results and max_res >= 0):
             current_geocell = central_point.geocells[max_res]
             qry = cls.query(cls.location.geocells.IN([current_geocell]),
-                            ancestor = DEFAULT_ROOT_WAYPOINT)
+                            ancestor = cls.default_ancestor())
             results = qry.fetch(None)
             ordered_results = filter(lambda x : utils.distance(x.location, central_point) < max_distance, results)
             ordered_results = sorted(ordered_results, key = lambda x : utils.distance(x.location, central_point))
@@ -65,17 +103,8 @@ class MissionWaypoint(GenericModel):
         return cls.query_near(middle_point_model, radius, max_results)
 
     @classmethod
-    def query_by_id(cls, objectId):
+    def default_ancestor(cls):
         '''
-        Alias for the general query_by_id query that applies the default
-        ancestor to the query.
+        Override the default ancestor for missions.
         '''
-        return super(MissionWaypoint, cls).query_by_id(objectId, DEFAULT_ROOT_WAYPOINT)
-
-    @classmethod
-    def query_all(cls, max_results):
-        '''
-        Alias for the general query_all query that applies the default ancestor
-        for the query.
-        '''
-        return super(MissionWaypoint, cls).query_all(max_results, DEFAULT_ROOT_WAYPOINT)
+        return _DEFAULT_MISSION_WAYPOINT_ROOT

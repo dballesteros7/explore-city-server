@@ -23,25 +23,25 @@
         var handleError = function(error){
             var mockPosition = {
                 coords : {
-                    latitude : 47.377455,
-                    longitude : 8.536715
+                    latitude : basePositionLat,
+                    longitude : basePositionLong
                 }
             };
             if (browserSupported) {
                 switch (error.code) {
                 case error.PERMISSION_DENIED:
                     console
-                            .log("Permission was denied for retrieving the location.")
+                            .log("Permission was denied for retrieving the location.");
                     break;
                 case error.POSITION_UNAVAILABLE:
-                    console.log("The position is not available.")
+                    console.log("The position is not available.");
                     break;
                 case error.TIMEOUT:
-                    console.log("Position retrieval took too long.")
+                    console.log("Position retrieval took too long.");
                     break;
                 }
             } else {
-                console.log("Browser does not support geolocation.")
+                console.log("Browser does not support geolocation.");
             }
             setLocation(mockPosition);
         };
