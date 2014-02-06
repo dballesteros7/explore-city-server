@@ -162,3 +162,38 @@ body {font: 14px/18px "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", san
 #waypoints-for-mission { height : 250px;
                          overflow-y: scroll; }
 
+/* Special settings for the lists of missions and waypoints */
+.inner-list .ui-selected {color: black;}
+.inner-list .ui-selected span {color: white;}
+
+/* New button in forms */
+.details-container h1 {margin: 0px;
+                       width: 150px;
+                       display: inline-block;
+                       padding: 12px;
+                       padding-left: 0px;
+                       padding-right: 0px;
+                       }
+.new-button { display: inline-block; 
+              padding: 2px;
+              margin: 5px;
+              background: #50911e;
+              border-radius: 19px;
+              border: 1px solid #509111;}
+.new-button:hover{
+      opacity:.85;
+      cursor: pointer;
+}
+.new-button:active{
+    border: 1px solid #20911e;
+    box-shadow: 0 0 10px 5px #356b0b inset;
+}
+
+/* Initially all form buttons are hidden */
+.update-form input[type="button"] {
+  display: none;
+}
+
+.hidden-input {
+  display: none;
+}

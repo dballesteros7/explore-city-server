@@ -12,6 +12,7 @@
     <script type="text/javascript" src="/javascript/utils.js"></script>
     <script type="text/javascript" src="/javascript/admin.js"></script>
     <script type="text/javascript" src="/javascript/external/jquery.blockUI.min.js"></script>
+    <script type="text/javascript" src="/javascript/external/jquery.form.min.js"></script>
     <link rel="stylesheet" media="screen" href="/stylesheets/admin/admin.css">
 </head>
 <body>
@@ -23,12 +24,16 @@
         <div class="tab-content">
             <div class="inner-list" id="waypoint-list"><ul></ul></div>
             <div class="details-container" id="waypoint-display">
-                <h1>Waypoint</h1>
+                <div>
+                    <h1>Waypoint</h1>
+                    <button class="new-button" id="new-waypoint-but"><img width="32px" height="32px" src="/icons/add.png" title="New waypoint"></button>
+                </div>
                 <form id="waypoint-display-form" class="update-form" action="">
                     <ul>
                         <li>
-                            <label for="waypoint-name">Name:</label>
+                            <label>Name:</label>
                             <span id="waypoint-name"></span>
+                            <input type="text" id="waypoint-name-input" class="new-object"></input>
                         </li>
                         <li>
                             <label for="waypoint-lat">Latitude:</label>
@@ -39,11 +44,13 @@
                             <input type="text" id="waypoint-lng"></input>
                         </li>
                         <li>
-                            <img width="400px" height="300px" src=""></img>
+                            <img width="400px" height="300px" src="" id="waypoint-reference-image"></img>
                         </li>
                         <li>
-                            <input type="button" value="Update waypoint" id="submit-waypoint-update" class="constructive"></input>
-                            <input type="button" value="Delete waypoint" id="delete-waypoint" class="destructive"></input>
+                            <input type="button" value="Update waypoint" id="submit-waypoint-update" class="constructive update-object"></input>
+                            <input type="button" value="Delete waypoint" id="delete-waypoint" class="destructive update-object"></input>
+                            <input type="button" value="Save" id="submit-new-waypoint" class="constructive new-object"></input>
+                            <input type="button" value="Cancel" id="cancel-new-waypoint" class="destructive new-object"></input>
                         </li>
                     </ul>
                 </form>
@@ -55,7 +62,10 @@
         <div class="tab-content">
             <div class="inner-list" id="mission-list"><ul></ul></div>
             <div class="details-container" id="mission-display">
-                <h1>Mission</h1>
+                <div>
+                    <h1>Mission</h1>
+                    <button class="new-button" id="new-mission-but"><img width="32px" height="32px" src="/icons/add.png" title="New mission"></button>
+                </div>
                 <form id="mission-display-form" class="update-form" action="">
                     <ul>
                         <li>
@@ -83,6 +93,11 @@
                 </form>
             </div>
         </div>
+    </div>
+    <div class="hidden-input">
+        <form id="waypoint-image-upload-form" method="POST" class="hidden-input" enctype="multipart/form-data">
+            <input type="file" class="hidden-input" id="waypoint-image-upload" name="image"></input>
+        </form>
     </div>
 </div>
 </body>

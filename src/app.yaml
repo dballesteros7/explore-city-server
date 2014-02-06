@@ -11,6 +11,9 @@ handlers:
 - url: /javascript
   static_dir: javascript
 
+- url: /icons
+  static_dir: img/icons
+
 # - url: /admin
 #   script: entry_point.app
 #   login: admin
