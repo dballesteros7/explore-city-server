@@ -69,8 +69,9 @@
                 <form id="mission-display-form" class="update-form" action="">
                     <ul>
                         <li>
-                            <label for="mission-name">Name:</label>
+                            <label>Name:</label>
                             <span id="mission-name"></span>
+                            <input type="text" id="mission-name-input" class="new-object"></input>
                         </li>
                         <li>
                             <label for="waypoints-for-mission">Waypoints:</label>
@@ -82,12 +83,14 @@
                             <input type="text" id ="new-waypoint-for-mission"></input>
                         </li>
                         <li>
-                            <input type="button" value="Add waypoint" id="add-waypoint-to-mission" class="constructive"></input>
-                            <input type="button" value="Remove selected" id="remove-waypoint-from-mission" class="destructive"></input>
+                            <input type="button" value="Add waypoint" id="add-waypoint-to-mission" class="constructive update-object new-object"></input>
+                            <input type="button" value="Remove selected" id="remove-waypoint-from-mission" class="destructive update-object new-object"></input>
                         </li>
                         <li>
-                            <input type="button" value="Update mission" id="submit-mission-update" class="constructive"></input>
-                            <input type="button" value="Delete mission" id="delete-mission" class="destructive"></input>
+                            <input type="button" value="Update mission" id="submit-mission-update" class="constructive update-object"></input>
+                            <input type="button" value="Delete mission" id="delete-mission" class="destructive update-object"></input>
+                            <input type="button" value="Save" id="submit-new-mission" class="constructive new-object"></input>
+                            <input type="button" value="Cancel" id="cancel-new-mission" class="destructive new-object"></input>
                         </li>
                     </ul>
                 </form>

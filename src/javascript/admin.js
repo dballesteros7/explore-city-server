@@ -58,16 +58,20 @@ adminNS = {};
             missionInMap = null;
         }
         // Clear the list of missions and the name
-        var $missionName = $("#mission-name");
-        $missionName.text("");
+        $("#mission-name")
+                    .text("")
+                    .css("display", "initial");
+        $("#mission-name-input")
+                    .val("")
+                    .css("display", "none");
         var $waypointList = $("#waypoints-for-mission");
         $waypointList.empty();
 
-        // Remove any listener from the remove selected button
+        // Remove any listener from the remove selected button waypoint
         $("#remove-waypoint-from-mission").off("click");
 
-        // Disable the buttons in the display form
-        $("#mission-display input[type='button']").attr("disabled", true);
+        // Hide the form buttons
+        $("#mission-display input[type='button']").css("display", "none");
     }
     
     function addWaypointToMissionList($waypointList, waypointId){
@@ -124,8 +128,8 @@ adminNS = {};
                 var $missionName = $("#mission-name");
                 $missionName.text(missionInfo.name);
 
-                // Activate the form buttons
-                $("#mission-display input[type='button']").attr("disabled", false);
+                // Display anything related to the update operation
+                $("#mission-display-form .update-object").css("display", "initial");
             },
             //TODO: Handle error case
         });
@@ -486,7 +490,7 @@ adminNS = {};
     }
 
     // ------------------------------------------------------------------------
-    // Functions that handle the creation of new waypoints
+    // Functions that handle the creation of new waypoints and missions
     // ------------------------------------------------------------------------
     function displayNewWaypointForm(){
         /**
@@ -516,6 +520,18 @@ adminNS = {};
         });
     }
 
+    function displayNewMissionForm(){
+        /**
+         * Function that prepares the display form for missions to create a new
+         * mission.
+         */
+        // Clear the display from any current mission
+        clearMissionDisplay();
+
+        // Show the elements for new objects
+        $("#mission-display-form .new-object").css("display", "initial");
+    }
+
     // ------------------------------------------------------------------------
     // Setup the handlers for the waypoint and mission forms
     // ------------------------------------------------------------------------
@@ -533,12 +549,12 @@ adminNS = {};
                 displayNewWaypointForm();
                 break;
             case "new-mission-but":
+                displayNewMissionForm();
                 break;
             default:
                 break;
             }
         });
-
     }
 
     function setupImageUploadHook(enable){
@@ -672,6 +688,41 @@ adminNS = {};
         /**
          * Function that handles the different actions on the mission form.
          */
+        // Option to create a new mission
+        $("#submit-new-mission").on("click", function(event){
+            event.preventDefault();
+            var missionId = $("#mission-name-input").val();
+            if(missionId){
+                var waypointsForMission = new Array();
+                $("#waypoints-for-mission li").each(function(index, ele){
+                    var waypointId = $(ele).text();
+                    waypointsForMission.push(waypointId);
+                });
+                if(waypointsForMission.length){
+                    $.ajax({
+                        url : "/api/missions",
+                        accepts : "application/json",
+                        contentType : "application/json",
+                        dataType : "json",
+                        type : "POST",
+                        data : JSON.stringify({
+                            name : missionId,
+                            waypoints : waypointsForMission
+                        }),
+                        success : updateWaypointsAndMissions,
+                        // TODO: Handle error case
+                    });
+                } else {
+                    // TODO: Warn about empty list of waypoints
+                }
+            } else {
+                // TODO: Inform the user of empty id
+            }
+        });
+        // Option to cancel a mission creation
+        $("#cancel-new-mission").on("click", function(event){
+            clearMissionDisplay();
+        });clearWaypointDisplay
         // Add item to list
         $("#add-waypoint-to-mission").on("click", function(event){
             var inputWaypoint = $("#new-waypoint-for-mission").val();
