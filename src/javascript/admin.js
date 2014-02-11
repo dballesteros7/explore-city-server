@@ -722,7 +722,7 @@ adminNS = {};
         // Option to cancel a mission creation
         $("#cancel-new-mission").on("click", function(event){
             clearMissionDisplay();
-        });clearWaypointDisplay
+        });
         // Add item to list
         $("#add-waypoint-to-mission").on("click", function(event){
             var inputWaypoint = $("#new-waypoint-for-mission").val();
