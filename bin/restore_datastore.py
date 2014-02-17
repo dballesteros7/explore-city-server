@@ -25,10 +25,10 @@ def upload_missions(mission_json, base_host):
 def main():
     data_dir = os.path.join(os.path.dirname(__file__), '../data/')
     waypoint_json_f = open(os.path.join(data_dir, 'waypoints.json'))
-    upload_waypoints(waypoint_json_f, 'http://localhost:8080/api')
+    upload_waypoints(waypoint_json_f, 'http://dev.street-view-density.appspot.com/api')
     waypoint_json_f.close()
     mission_json_f = open(os.path.join(data_dir, 'missions.json'))
-    upload_missions(mission_json_f, 'http://localhost:8080/api')
+    upload_missions(mission_json_f, 'http://dev.street-view-density.appspot.com/api')
     mission_json_f.close()
 
 if __name__ == '__main__':

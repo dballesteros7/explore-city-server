@@ -12,6 +12,7 @@ from handler.api.missions import MissionResource
 from handler.api.submissions import SubmissionResource
 from handler.api.waypoints import WaypointResource
 from handler.pages.admin import AdminPage
+from handler.pages.login import LoginPage
 
 
 app = webapp2.WSGIApplication([
@@ -26,4 +27,5 @@ app = webapp2.WSGIApplication([
   RedirectRoute(r'/api/submissions/<name>', handler = SubmissionResource, name = 'submissions-resource-named', strict_slash = True),
   # HTML pages
   RedirectRoute(r'/admin', handler = AdminPage, name = 'admin-page', methods = ['GET'], strict_slash = True),
+  RedirectRoute(r'/login', handler = LoginPage, name = 'login-page', methods = ['GET'], strict_slash = True),
 ])

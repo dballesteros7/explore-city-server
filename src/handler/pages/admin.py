@@ -9,6 +9,7 @@ import os.path
 import webapp2
 
 from root import APPLICATION_ROOT
+from handler.auth import login_required
 
 
 class AdminPage(webapp2.RequestHandler):
@@ -16,6 +17,7 @@ class AdminPage(webapp2.RequestHandler):
     Handler that provides the admin page on request.
     '''
 
+    @login_required
     def get(self):
         '''
         GET verb for the handler which writes out the admin page defined in
