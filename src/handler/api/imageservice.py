@@ -9,7 +9,9 @@ from google.appengine.api.images import get_serving_url
 from google.appengine.ext.blobstore import create_upload_url
 from google.appengine.ext.webapp import blobstore_handlers
 import json
-import webapp2
+
+from handler.auth import login_required
+from handler.base import BaseHandler
 
 
 class ImageUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
@@ -18,6 +20,7 @@ class ImageUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
     and returns the blobkey to the user, who is responsible of passing
     it to the correct REST resource.
     '''
+
     def post(self):
         '''
         POST verb that is called after a successful upload to the blobstore,
@@ -35,18 +38,19 @@ class ImageUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
                             'image_url' : get_serving_url(blob_info)}
         self.response.out.write(json.dumps(response_results))
 
-class ImageUploadUrlProvider(webapp2.RequestHandler):
+class ImageUploadUrlProvider(BaseHandler):
     '''
     Request handler that provides an URL for authorized users that can be
     used to upload images to the server.
     '''
+
+    @login_required(redirect = False)
     def get(self):
         '''
         Provide a blobstore upload URL that can be used to upload images
         to the server. Make sure that only authorized user and apps can
         get access to such URLs.
         '''
-        # TODO: Access control
         upload_url = create_upload_url(self.uri_for('image-upload'))
         self.response.headers['Content-Type'] = 'application/json'
         response_results = {'upload_url' : upload_url}

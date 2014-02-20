@@ -13,7 +13,18 @@ from handler.api.submissions import SubmissionResource
 from handler.api.waypoints import WaypointResource
 from handler.pages.admin import AdminPage
 from handler.pages.login import LoginPage
+import secrets
 
+
+config = {}
+config['webapp2_extras.sessions'] = {
+    'secret_key': secrets.session_cookie_key,
+    'cookie_args' : {#'secure' : True,
+                     #'httponly' : True
+                     }
+}
+config['webapp2_extras.jinja2'] = {
+                                   'template_path' : 'html/templates'}
 
 app = webapp2.WSGIApplication([
   # API routes
@@ -28,4 +39,4 @@ app = webapp2.WSGIApplication([
   # HTML pages
   RedirectRoute(r'/admin', handler = AdminPage, name = 'admin-page', methods = ['GET'], strict_slash = True),
   RedirectRoute(r'/login', handler = LoginPage, name = 'login-page', methods = ['GET'], strict_slash = True),
-])
+], config = config)

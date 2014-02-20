@@ -6,18 +6,18 @@ Created on Jan 27, 2014
 '''
 
 import os.path
-import webapp2
 
 from root import APPLICATION_ROOT
 from handler.auth import login_required
+from handler.base import BaseHandler
 
 
-class AdminPage(webapp2.RequestHandler):
+class AdminPage(BaseHandler):
     '''
     Handler that provides the admin page on request.
     '''
 
-    @login_required
+    @login_required(admin_only = True)
     def get(self):
         '''
         GET verb for the handler which writes out the admin page defined in

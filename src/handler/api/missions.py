@@ -13,6 +13,7 @@ from models.geopoint import GeoPoint
 from models.mission import Mission
 from models.missionwaypoint import MissionWaypoint
 from webutils import parseutils
+from handler.auth import login_required
 
 
 class MissionResource(BaseResource):
@@ -92,6 +93,7 @@ class MissionResource(BaseResource):
             response_results['missions'].append(missionObject)
         self.response.out.write(json.dumps(response_results))
 
+    @login_required(redirect = False, admin_only = True)
     def post(self):
         '''
         Provides the POST verb for the missions resource. It creates a new
@@ -106,7 +108,6 @@ class MissionResource(BaseResource):
 
         The only accepted content type is 'application/json'.
         '''
-        # TODO: Access control
         # Check the content type and parse the argument appropriately
         parameters = self.parse_request_body(urlencoded_accepted = False)
         model_params = self.validate_parameters_post(parameters)
@@ -126,6 +127,7 @@ class MissionResource(BaseResource):
                                                          _full = True)}
         self.response.out.write(json.dumps(response_results))
 
+    @login_required(redirect = False, admin_only = True)
     def put(self, name):
         '''
         Provides the PUT verb for the waypoints resource. It allows editing
@@ -139,7 +141,6 @@ class MissionResource(BaseResource):
         The only format allowed is JSON and the content type should be
         'application/json'.
         '''
-        # TODO: Access control
         # Check the content type and parse the argument appropriately
         parameters = self.parse_request_body(urlencoded_accepted = False)
         parameters['name'] = name
@@ -159,12 +160,12 @@ class MissionResource(BaseResource):
                                                          _full = True)}
         self.response.out.write(json.dumps(response_results))
 
+    @login_required(redirect = False, admin_only = True)
     def delete(self, name):
         '''
         Provides the DELETE verb for the missions resource. It allows deleting
         a mission given its name. This DOES NOT delete the associated waypoints.
         '''
-        # TODO: Access control
         # Retrieve the mission to delete and check that it exists.
         mission_to_delete = Mission.query_by_id(name)
         if not mission_to_delete:

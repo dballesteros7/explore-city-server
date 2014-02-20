@@ -7,8 +7,9 @@ Created on Jan 16, 2014
 '''
 import json
 import webapp2
+from handler.base import BaseHandler
 
-class QueryType():
+class QueryType:
     '''
     Class that defines the types of queries that can be made to geolocated
     resources in the GET verb.
@@ -21,7 +22,7 @@ class QueryType():
     BOUNDING_BOX = 2
     UNBOUNDED = 0
 
-class BaseResource(webapp2.RequestHandler):
+class BaseResource(BaseHandler):
     '''
     Base RequestHandler that serves as parent of all other handlers in the 
     API. It defines basic methods to deal with parameter validation, response

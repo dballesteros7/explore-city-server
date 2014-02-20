@@ -1,10 +1,6 @@
 '''Module that defines the model for users in the datastore.
 
 .. moduleauthor:: Diego Ballesteros <diegob@student.ethz.ch>
-
-Created on Jan 13, 2014
-
-@author: diegob
 '''
 from google.appengine.ext import ndb
 

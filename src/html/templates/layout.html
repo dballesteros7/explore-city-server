@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% block head %}
+    <meta charset="UTF-8">
+    <title>{% block title %}Xplore{% endblock title %}</title>
+    {% block jslibs %}
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <link href='http://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/stylesheets/default.css">
+    {% endblock jslibs %}
+    {% endblock head %}
+</head>
+<body>
+    <div id="header">
+    {% block header %}
+    {% endblock header %}
+    </div>
+    <div id="content">
+    {% block content %}
+    {% endblock content %}
+    </div>
+    <div id="footer">
+    {% block footer %}
+    <ul class="footer left">
+        <li><a href="/home">Home</a></li>
+        <li><a href="/doc">Documentation</a></li>
+        <li><a href="//github.com/dballesteros7/explore-city-server">Source</a></li>
+        <li><a href="//las.ethz.ch">Contact</a></li>
+    </ul>
+    <ul class="footer right">
+        <li><img width="120" height="30" src="img/appengine-noborder-120x30.gif?csw=1"/></li>
+        <li><img width="70" height="28" src="/img/python-powered-w-70x28.png"/></li>
+    </ul>
+    {% endblock footer %}
+    </div>
+</body>
+</html>

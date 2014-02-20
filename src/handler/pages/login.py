@@ -1,21 +1,16 @@
-'''Module that contains the login pages
-Created on Feb 13, 2014
+'''Module that provides the handlers for login pages in different scenarios.
 
-@author: diegob
+.. moduleauthor:: Diego Ballesteros <diegob@student.ethz.ch>
 '''
-from google.appengine.api import users
-
-import webapp2
+from handler.base import BaseHandler
 
 
-class LoginPage(webapp2.RequestHandler):
+class LoginPage(BaseHandler):
+    '''Basic login page handler. It serves the initial login template with
+    the different login options.
     '''
-    classdocs
-    '''
-    
+
     def get(self):
         '''Return a page for login.
         '''
-        greeting = ('<a href="%s">Sign in or register</a>.' %
-                    users.create_login_url('/admin'))
-        self.response.out.write('<html><body>%s</body></html>' % greeting)
+        self.render_response('login.html')

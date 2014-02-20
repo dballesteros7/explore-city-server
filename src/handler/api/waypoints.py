@@ -5,11 +5,12 @@ Created on Jan 9, 2014
 @author: diegob
 '''
 from google.appengine.api.images import get_serving_url
-from google.appengine.ext.blobstore import BlobInfo, BlobKey
+from google.appengine.ext.blobstore import BlobKey
 import json
 
 from geocell.geopoint import GeoPoint as SimpleGeoPoint
 from handler.api.base_service import BaseResource, QueryType
+from handler.auth import login_required
 from models.geopoint import GeoPoint
 from models.missionwaypoint import MissionWaypoint
 from webutils import parseutils
@@ -83,6 +84,7 @@ class WaypointResource(BaseResource):
                                                   'name' : result.key.id()})
         self.response.out.write(json.dumps(response_results))
 
+    @login_required(redirect = False, admin_only = True)
     def post(self):
         '''
         Provides the POST verb for the waypoints resource. It creates a new
@@ -99,7 +101,6 @@ class WaypointResource(BaseResource):
         The accepted content types are 'application/json' and 
         'application/x-www-form-urlencoded'
         '''
-        # TODO: Access control
         # Check the content type and parse the argument appropriately
         parameters = self.parse_request_body()
         model_params = self.validate_parameters_post(parameters)
@@ -124,6 +125,7 @@ class WaypointResource(BaseResource):
                                                      _full = True)}
         self.response.out.write(json.dumps(response_results))
 
+    @login_required(redirect = False, admin_only = True)
     def put(self, name):
         '''
         Provides the PUT verb for the waypoint resource. It allows the update
@@ -140,7 +142,6 @@ class WaypointResource(BaseResource):
         The accepted content types are 'application/json' and 
         'application/x-www-form-urlencoded'
         '''
-        # TODO: Access control
         # Check the content type and parse the arguments appropriately
         # Validate them as well
         parameters = self.parse_request_body()
@@ -172,6 +173,7 @@ class WaypointResource(BaseResource):
                                                      _full = True)}
         self.response.out.write(json.dumps(response_results))
 
+    @login_required(redirect = False, admin_only = True)
     def delete(self, name):
         '''
         Provides the DELETE verb for the waypoint resource. It allows the
@@ -179,7 +181,6 @@ class WaypointResource(BaseResource):
         and throws an exception otherwise. It also deletes from the Blobstore
         the reference image associated with it.
         '''
-        # TODO: Access control
         # Retrieve the waypoint to delete and check that it exists.
         waypoint_to_delete = MissionWaypoint.query_by_id(name)
         if not waypoint_to_delete:

@@ -1,0 +1,18 @@
+@CHARSET "UTF-8";
+
+#content div {
+  display: inline-block;
+}
+
+#login_services li {
+  list-style-type: none;
+  padding-bottom: 4px;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+.box {
+  border: 2px solid #eee;
+  border-radius:25px;
+  background-color: #c0c0c0;
+}

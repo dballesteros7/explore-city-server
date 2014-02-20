@@ -1,0 +1,41 @@
+@CHARSET "UTF-8";
+
+body { margin: 0px; }
+html, body, #content { height: 100%;}
+body > #content { height: auto; min-height: 100%;  margin: 0; padding: 0; }
+body {
+  font-family: 'Varela Round', sans-serif;
+}
+
+#content {
+  padding-bottom: 49px;
+}
+
+#footer {
+  clear: both;
+  position: relative;
+  margin-top: -49px;
+  width: 100%;
+  height: 48px;
+  border-bottom: 0px;
+  border-top: 1px solid #eee;
+  font-size: 14px;
+}
+
+.footer {
+  display: inline-block;
+}
+
+.footer li {
+  display: inline;
+  list-style-type: none;
+  padding-right: 20px;
+}
+
+.footer {
+  margin-bottom: 0px;
+}
+
+.right {
+  float: right;
+}
