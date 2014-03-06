@@ -8,15 +8,51 @@
 {% endblock head %}
 
 {% block content %}
-<div id="welcome_banner" class="box left">
-    <h1> Welcome! </h1>
-    <span> Please select a service to login </span>
-</div>
-<div id="login_services" class="box right">
-    <ul id="logins">
-        <li><a href="" class="zocial facebook">Sign in with Facebook</a></li>
-        <li><a href="" class="zocial googleplus">Sign in with Google</a></li>
-        <li><a href="" class="zocial twitter">Sign in with Twitter</a></li>
-    </ul>
-</div>
+    {% if second_step %}
+    <div id="welcome-banner" class="box left">
+        <h1> Welcome! </h1>
+        <div><span>Please complete your registration process.</span></div>
+    </div>
+    <div id="login-services" class="box left">
+        <form id="login-form" action="{{user_registration_url}}" method="POST">
+            <ul>
+                <li>
+                    <label for="username">Username: </label>
+                    <input type="text" placeholder="timmy" id="username" name="username"></input>
+                </li>
+                <li>
+                    <label for="email">E-mail: </label>
+                    <input type="text" placeholder="something@example.net" id="email" name="email" value={{suggested_email}}></input>
+                </li>
+                <li class="hidden">
+                    <input type="text" id="user_key" value="{{user_key}}" name="user_key"></input>
+                </li>
+                <li>
+                    <input type="submit" id="submit-form" value="Register"></input>
+                </li>
+            </ul>
+        </form>
+    </div>
+    {% elif logged_in %}
+	    <div id="welcome-banner" class="box left">
+	        <h1> Welcome! </h1>
+	        <div><span>You are already logged in as {{username}}</span></div>
+	    </div>
+	    <div id="login-services" class="box left">
+	    </div>
+    {% else %}
+    <div id="welcome-banner" class="box left">
+        <h1> Welcome! </h1>
+        <div><span>Please select a service to login</span></div>
+    </div>
+    <div id="login-services" class="box left">
+        <ul id="logins">
+            <li><a href="/auth/facebook" class="zocial facebook">Sign in with Facebook</a></li>
+            <li><a href="/auth/google" class="zocial googleplus">Sign in with Google</a></li>
+            <li><a href="" class="zocial twitter">Sign in with Twitter</a></li>
+        </ul>
+    </div>
+    {% endif %}
+
+
 {% endblock content %}

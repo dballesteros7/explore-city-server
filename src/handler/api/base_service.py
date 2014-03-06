@@ -7,7 +7,9 @@ Created on Jan 16, 2014
 '''
 import json
 import webapp2
+
 from handler.base import BaseHandler
+
 
 class QueryType:
     '''
@@ -23,8 +25,7 @@ class QueryType:
     UNBOUNDED = 0
 
 class BaseResource(BaseHandler):
-    '''
-    Base RequestHandler that serves as parent of all other handlers in the 
+    '''Base RequestHandler that serves as parent of all other handlers in the 
     API. It defines basic methods to deal with parameter validation, response
     building and request parsing.
     '''

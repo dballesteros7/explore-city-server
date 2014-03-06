@@ -78,3 +78,28 @@ class LoginRequired(object):
                                         abort = True)
             else:
                 self._instance.abort(401)
+
+def login_user(user_instance, session):
+    '''Function that provides the ability to log in an user given an instance of
+    :class:`models.User` which represents the user in the datastore.
+
+    :param user_instance: User instance in the datastore.
+    :type user_instance: :class:`models.User`
+    :param session: Session instance to record the log in.
+    '''
+    session['_user_logged_in'] = True
+    session['_user_id'] = user_instance.key.urlsafe()
+    if user_instance.admin_status:
+        session['_admin_user'] = True
+
+def logout_user(session):
+    '''Function that provides the ability to log out the current user by
+    removing the corresponding records from the given session object.
+    
+    :param session: Session instance where the log in is recorded.
+    '''
+    if 'user_logged_in' in session:
+        del session['user_logged_in']
+        del session['_user_id']
+    if '_admin_user' in session:
+        del session['_admin_user']
