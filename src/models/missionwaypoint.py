@@ -49,7 +49,7 @@ class MissionWaypoint(GenericModel):
         map(lambda x: x.remove_waypoint(self.key), related_missions)
 
         # Deletion the associated image
-        BlobInfo.get(self.reference_image).delete()
+        # BlobInfo.get(self.reference_image).delete()
 
         # Delete myself
         self.key.delete()

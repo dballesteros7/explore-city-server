@@ -75,12 +75,13 @@ class WaypointResource(BaseResource):
         self.build_base_response()
         response_results = {'waypoints' : []}
         for result in results:
-            options = {}
+            options = {'size' : 0}
             if 'image_size' in qry_params:
                 options['size'] = qry_params['image_size']
             response_results['waypoints'].append({'latitude' : result.location.latitude,
                                                   'longitude' : result.location.longitude,
                                                   'image_url' : get_serving_url(result.reference_image, **options),
+                                                  'image_key' : str(result.reference_image),
                                                   'name' : result.key.id()})
         self.response.out.write(json.dumps(response_results))
 
@@ -112,7 +113,7 @@ class WaypointResource(BaseResource):
 
         waypoint = MissionWaypoint.build(id = model_params['name'],
                                          location = location,
-                                         reference_image = 
+                                         reference_image =
                                             BlobKey(model_params['image_key']))
         waypoint_key = waypoint.put()
 

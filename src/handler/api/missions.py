@@ -89,7 +89,7 @@ class MissionResource(BaseResource):
                     missionObject['waypoints'].append({'latitude' : waypoint.location.latitude,
                                                        'longitude' : waypoint.location.longitude,
                                                        'image_url' : get_serving_url(waypoint.reference_image,
-                                                                                     {'size' : 0}),
+                                                                                     **{'size' : 0}),
                                                        'name' : waypointKey.id()})
             response_results['missions'].append(missionObject)
         self.response.out.write(json.dumps(response_results))

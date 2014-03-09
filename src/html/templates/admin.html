@@ -1,0 +1,120 @@
+{% extends "layout.html" %} {% block title %}Xplore Administrator
+Console{% endblock title %} {% block head %} {{super()}}
+<link rel="stylesheet" type="text/css" href="/stylesheets/admin.css" />
+{% endblock head %} {% block content %}
+<div id="map-container" class="col-lg-8">
+  <div id="admin-map"></div>
+</div>
+<div class="col-lg-4">
+  <ul id="selection-tabs" class="nav nav-tabs">
+    <li class="active"><a href="#waypoints" data-toggle="tab">Waypoints</a></li>
+    <li><a href="#missions" data-toggle="tab">Missions</a></li>
+  </ul>
+  <div class="tab-content">
+    <div id="waypoints" class="tab-pane active">
+      <div class="panel panel-default">
+        <div class="list-group panel-body xplore-object-list"
+          id="waypoint-list"></div>
+      </div>
+      <hr>
+      <h2>Waypoint</h2>
+      <form id="waypoint-display-form" class="form-horizontal"
+        role="form" action="">
+        <div class="form-group">
+          <label for="waypoint-name-input"
+            class="col-sm-4 control-label">Name:</label><input
+            type="text" id="waypoint-name-input" class="col-sm-6"></input>
+        </div>
+        <div class="form-group">
+          <label for="waypoint-lat" class="col-sm-4 control-label">Latitude:</label>
+          <input type="text" id="waypoint-lat" class="col-sm-6"></input>
+        </div>
+        <div class="form-group">
+          <label for="waypoint-lng" class="col-sm-4 control-label">Longitude:</label>
+          <input type="text" id="waypoint-lng" class="col-sm-6"></input>
+        </div>
+        <div class="form-group">
+          <img class="img-thumbnail" id="waypoint-reference-image"
+            src="img/warlords-of-draenor-1600x900.jpg">
+        </div>
+        <div class="form-group">
+          <button type="button" id="new-waypoint"
+            class="col-sm-4 btn btn-primary">New</button>
+          <button type="button" id="save-waypoint"
+            class="col-sm-4 col-sm-offset-2 btn btn-success">Save</button>
+        </div>
+        <div class="form-group">
+          <button id="delete-waypoint" class="col-sm-4 btn btn-danger">Delete
+          </button>
+          <button type="button" id="cancel-waypoint"
+            class="col-sm-4 col-sm-offset-2 btn btn-warning">Cancel</button>
+        </div>
+      </form>
+    </div>
+    <div id="missions" class="tab-pane">
+      <div class="panel panel-default">
+        <div class="list-group panel-body xplore-object-list"
+          id="mission-list"></div>
+      </div>
+      <hr>
+      <h2>Mission</h2>
+      <form id="mission-display-form" class="form-horizontal" action=""
+        role="form">
+        <div class="form-group">
+          <label for="mission-name-input" class="col-sm-4 control-label">Name:</label>
+          <input type="text" id="mission-name-input" class="col-sm-6"></input>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Waypoints:</label>
+          <div class="panel panel-default col-sm-12">
+            <div id="waypoints-for-mission"
+              class="list-group panel-body xplore-object-list"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="new-waypoint-for-mission"
+            class="col-sm-4 control-label">Waypoint name:</label> <input
+            type="text" id="new-waypoint-for-mission" class="col-sm-6"></input>
+        </div>
+        <div class="form-group">
+          <button id="add-waypoint-to-mission"
+            class="col-sm-4 btn btn-success">Add waypoint</button>
+          <button type="button" id="remove-waypoint-from-mission"
+            class="col-sm-4 col-sm-offset-2 btn btn-danger">Remove
+            waypoint</button>
+        </div>
+        <div class="form-group">
+          <button type="button" id="new-mission"
+            class="col-sm-4 btn btn-primary">New</button>
+          <button type="button" id="save-mission"
+            class="col-sm-4 col-sm-offset-2 btn btn-success">Save</button>
+        </div>
+        <div class="form-group">
+          <button id="delete-mission" class="col-sm-4 btn btn-danger">Delete
+          </button>
+          <button type="button" id="cancel-mission"
+            class="col-sm-4 col-sm-offset-2 btn btn-danger">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="hidden-input">
+  <form id="waypoint-image-upload-form" method="POST"
+    class="hidden-input" enctype="multipart/form-data">
+    <input type="file" class="hidden-input" id="waypoint-image-upload"
+      name="image"></input>
+  </form>
+</div>
+{% endblock content %} {% block jslibs %} {{super()}}
+<script type="text/javascript"
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJWijKmFSCDi9U5ZboNGIxqxZbTStqoPI&sensor=false">
+    
+</script>
+<script type="text/javascript" src="/javascript/utils.js"></script>
+<script type="text/javascript" src="/javascript/admin.js"></script>
+<script type="text/javascript"
+  src="/javascript/external/jquery.blockUI.min.js"></script>
+<script type="text/javascript"
+  src="/javascript/external/jquery.form.min.js"></script>
+{% endblock jslibs %}

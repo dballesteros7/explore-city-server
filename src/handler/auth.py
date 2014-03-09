@@ -66,6 +66,8 @@ class LoginRequired(object):
         that contains a valid _instance object that refers to the handler
         instance that invoked the decorated method.
         '''
+        # TODO This is disabled at the moment.
+        return self._func(self._instance, *args, **kwargs)
         # TODO: Verify cookie/session expiration.
         if self._instance.session.get('_user_logged_in', None) and \
             (not self._check_admin or self._instance.session.get('_admin_user', None)):

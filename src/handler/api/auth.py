@@ -42,7 +42,7 @@ class AuthHandler(SimpleAuthHandler, BaseHandler):
             self.redirect('/')
 
     def logout(self):
-        logout_user(self.session)
+        #logout_user(self.session)
         self.redirect('/')
 
     def _callback_uri_for(self, provider):
