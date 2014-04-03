@@ -37,6 +37,8 @@ class NotMatchingRegularExpression(LexiconError):
         LexiconError.__init__(self, msg = 'The input text does not match the' +
                               ' expected regular expression.')
 
+_supported_providers = ['google']
+
 def string_input(lexicon_func):
     '''Decorator that ensures that the input is a string, this is to avoid
     choking on non-string inputs when doing matching with the regex engine.
@@ -66,4 +68,12 @@ def email(input_value):
         raise NotMatchingRegularExpression()
     return
 
-    
+@string_input
+def provider(input_value):
+    """Provider lexicon definition. This checks against a pre-defined list of
+    accepted provider."""
+    for provider in _supported_providers:
+        if input_value.lower() == provider:
+            break
+    else:
+        raise NotMatchingRegularExpression()

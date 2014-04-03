@@ -41,6 +41,8 @@ class BaseResource(BaseHandler):
         Since this dictionary may come directly from the request then it is
         immutable.
         '''
+        if not self.request.headers.get('Content_Type'):
+            return self.request.params
         if json_accepted and 'application/json' in self.request.headers.get('Content_Type'):
             try:
                 parameters = json.loads(self.request.body)

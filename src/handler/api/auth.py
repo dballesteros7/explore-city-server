@@ -4,11 +4,16 @@ or OpenID.
 .. moduleauthor:: Diego Ballesteros <diegob@student.ethz.ch>'''
 
 
-from handler.base import BaseHandler
-from models.user import TemporaryUser, User
-import secrets
-from simpleauth import SimpleAuthHandler
+import calendar
+import json
+
+from handler.api.base_service import BaseResource
 from handler.auth import login_user
+from handler.base import BaseHandler
+from lib.simpleauth import SimpleAuthHandler
+from models.auth import SessionToken
+from models.user import TemporaryUser, User, NonExistentUserError
+import secrets
 
 
 class AuthHandler(SimpleAuthHandler, BaseHandler):
@@ -42,7 +47,7 @@ class AuthHandler(SimpleAuthHandler, BaseHandler):
             self.redirect('/')
 
     def logout(self):
-        #logout_user(self.session)
+        # logout_user(self.session)
         self.redirect('/')
 
     def _callback_uri_for(self, provider):
@@ -57,3 +62,30 @@ class AuthHandler(SimpleAuthHandler, BaseHandler):
         See example/secrets.py.template
         '''
         return secrets.AUTH_CONFIG[provider]
+
+
+class TokenResource(BaseResource):
+    """Resource class that handles the creation and invalidation of session
+    tokens granted to the mobile app.
+    """
+
+    def get(self):
+        """Retrieve a limited-life token for the given user, the required input
+        is the username for identification and a JSON web token provided
+        by the Google Auth API for security purposes.
+
+        This invalidates any existing tokens in the datastore first, before
+        issuing a new one.
+        """
+        # TODO: IMPLEMENT VALIDATION OF JSON WEB TOKEN FROM APP
+        parameters = self.parse_request_body()
+        the_user = User.get_by_username(parameters['username'])
+        if the_user is None:
+            raise NonExistentUserError(parameters['username'])
+        SessionToken.invalidate_existing_tokens_for_user(the_user)
+        token = SessionToken.create_token_for_user(the_user)
+        self.build_base_response()
+        response_body = {'access_token' : token.token_hash,
+                         'expires_on' : calendar.timegm(token.expires_on.utctimetuple()),
+                         'created_on' : calendar.timegm(token.created_on.utctimetuple()) }
+        self.response.out.write(json.dumps(response_body))

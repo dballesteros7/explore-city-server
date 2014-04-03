@@ -8,10 +8,11 @@ import sys
 import webapp2
 from webapp2_extras.routes import RedirectRoute
 
+from handler.api.auth import TokenResource
 from handler.api.imageservice import ImageUploadHandler, ImageUploadUrlProvider
 from handler.api.missions import MissionResource
 from handler.api.submissions import SubmissionResource
-from handler.api.users import UserResource
+from handler.api.users import UserResource, MobileUserResource
 from handler.api.waypoints import WaypointResource
 from handler.pages.admin import AdminPage
 from handler.pages.login import LoginPage
@@ -24,8 +25,8 @@ if 'lib' not in sys.path:
 config = {}
 config['webapp2_extras.sessions'] = {
     'secret_key': secrets.session_cookie_key,
-    'cookie_args' : {#'secure' : True,
-                     #'httponly' : True
+    'cookie_args' : {  # 'secure' : True,
+                     # 'httponly' : True
                      }
 }
 config['webapp2_extras.jinja2'] = {
@@ -43,10 +44,11 @@ app = webapp2.WSGIApplication([
   RedirectRoute(r'/api/submissions/<name>', handler = SubmissionResource, name = 'submissions-resource-named', strict_slash = True),
   RedirectRoute(r'/api/user', handler = UserResource, name = 'users-resource', strict_slash = True),
   RedirectRoute(r'/api/user/<userid>', handler = UserResource, name = 'users-resource-named', strict_slash = True),
+  RedirectRoute(r'/api/mobileuser', handler = MobileUserResource, name = 'mobile-users-resource', strict_slash = True),
+  RedirectRoute(r'/api/mobileuser/<userid>', handler = UserResource, name = 'mobile-users-resource-named', strict_slash = True),
   # Auth API
-  RedirectRoute('/auth/<provider>', handler='handler.api.auth.AuthHandler:_simple_auth', name='auth_login', strict_slash=True),
-  RedirectRoute('/auth/<provider>/callback', handler='handler.api.auth.AuthHandler:_auth_callback', name='auth_callback', strict_slash=True),
-  RedirectRoute('/logout', handler='handler.api.auth.AuthHandler:logout', name='logout', strict_slash=True),
+  RedirectRoute(r'/auth/token', handler = TokenResource, name = 'auth-token-provider', methods = ['GET'], strict_slash = True),
+  RedirectRoute('/logout', handler = 'handler.api.auth.AuthHandler:logout', name = 'logout', strict_slash = True),
   # HTML pages
   RedirectRoute(r'/admin', handler = AdminPage, name = 'admin-page', methods = ['GET'], strict_slash = True),
   RedirectRoute(r'/login', handler = LoginPage, name = 'login-page', methods = ['GET'], strict_slash = True),
