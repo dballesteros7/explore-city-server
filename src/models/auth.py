@@ -1,6 +1,3 @@
-'''Module that specifies several models that can be used as structured
-properties to associate with user records.
-'''
 import base64
 from datetime import datetime, timedelta
 from google.appengine.ext import ndb
@@ -10,96 +7,53 @@ from Crypto import Random
 
 from models.general import GenericModel
 
+_ACCESS_TOKEN_EXPIRATION_TIME = 12 * 3600
 
-class IdentityProvider(GenericModel):
-    '''Top level identity provider, this defines the basic attributes and
-    functionality of a IdentityProvider model.'''
+class GoogleIdentity(GenericModel):
+    """Google identity provider, this model functions as an StructuredProperty
+    for the User model. It stores the credentials necessary for using the
+    Google APIs on behalf of the user."""
 
-    # : Unique id of the user given by the ID provider.
-    user_id = ndb.StringProperty(required = True)
-    # : Access token to call external APIs using the user's identity.
-    access_token = ndb.StringProperty()
-    # : Expiration time for the token
-    expiration_time = ndb.DateTimeProperty()
-    # : Name of the service, this should be overriden by subclasses.
-    provider = ndb.StringProperty(default = 'Bogus')
+    user_gid = ndb.StringProperty(required = True)
+    access_token = ndb.StringProperty(required = True)
+    refresh_token = ndb.StringProperty(required = True)
+    expiration_time = ndb.DateTimeProperty(required = True)
 
     @classmethod
-    def create_from_info(cls, auth_info, data):
-        '''Method to create an :class:`IdentityProvider` object from the given
-        authentication and user data. This is a generic method that should
-        work for services with common callback responses.
-        :returns: :class:`IdentityProvider` -- Credentials of the user in some 
-                                               service.
-        '''
-        return None
+    def create(cls, auth_info):
+        """Method to create a new instance containing the credentials of an
+        user in Google.
+        
+        Args:
+            auth_info: Dict with the credentials of the user in google, it
+            requires the following keys:
+                * user_gid -- The user's Google id.
+                * access_token -- Short-lived access token for the user.
+                * refresh_token -- Long-lived token to request new access
+                                   tokens.
+                * expires_in -- Time until expiration of the access token.
 
-    @classmethod
-    def retrieve_email(cls, data):
-        '''Method that returns the user's e-mail from the given user data. This
-        is a generic method that should work for services with common data
-        formats.
-        :returns: str -- E-mail of the user in the service.
-        '''
-        return data['email']
-
-class FacebookProvider(IdentityProvider):
-    '''Facebook identity provider, service_name is facebook'''
-    provider = ndb.StringProperty(default = 'facebook')
-
-    @classmethod
-    def create_from_info(cls, auth_info, data):
-        '''Facebook-specific implementation of
-        :py:meth:`IdentityProvider.create_from_info`'''
-        return cls(user_id = data['id'],
-                   access_token = auth_info['access_token'],
-                   expiration_time = datetime.utcfromtimestamp(
-                                time.time() + float(auth_info['expires'])))
-
-class GoogleProvider(IdentityProvider):
-    """Google identity provider, service_name is google."""
-    provider = ndb.StringProperty(default = "google")
-    refresh_token = ndb.StringProperty()
-
-    @classmethod
-    def create_from_info(cls, auth_info, data):
-        '''Google-specific implementation of
-        :py:meth:`IdentityProvider.create_from_info`'''
-        return cls(user_id = data['id'],
-                   access_token = auth_info['access_token'],
-                   expiration_time = datetime.utcfromtimestamp(
-                                time.time() + float(auth_info['expires_in'])))
-    @classmethod
-    def create_from_mobile(cls, auth_info):
-        """Google-specific implementation of
-        :py:meth:`IdentityProvider.create_from_mobile`"""
-        return cls(user_id = auth_info['user_id'],
+        Returns:
+            Instance of the GoogleIdentity model with the given credentials.
+        """
+        return cls(user_gid = auth_info['user_gid'],
                    access_token = auth_info['access_token'],
                    refresh_token = auth_info['refresh_token'],
                    expiration_time = datetime.utcfromtimestamp(
                                 time.time() + float(auth_info['expires_in'])))
 
-class TwitterProvider(IdentityProvider):
-    '''Twitter identity provider, service_name is twitter'''
-    provider = ndb.StringProperty(default = 'twitter')
-
-class LinkedinProvider(IdentityProvider):
-    '''Linkedin identity provider, service_name is linkedin'''
-    provider = ndb.StringProperty(default = 'linkedin2')
-
-class SessionToken(GenericModel):
-    """Session token model in the datastore."""
-    _DEFAULT_EXPIRATION_TIME = 12 * 3600
+class AccessToken(GenericModel):
+    """Access token model in the datastore."""
 
     associated_user = ndb.KeyProperty(required = True)
     created_on = ndb.DateTimeProperty(auto_now_add = True)
     expires_on = ndb.ComputedProperty(lambda self : self.created_on +
-                    timedelta(seconds = SessionToken._DEFAULT_EXPIRATION_TIME))
+                    timedelta(seconds = _ACCESS_TOKEN_EXPIRATION_TIME))
     token_hash = ndb.StringProperty(required = True)
     valid = ndb.BooleanProperty(default = True)
 
     @classmethod
-    def create_token_for_user(cls, user):
+    def create(cls, user):
         """Create a new secure session token for the user, the token_hash is
         generated as a 32-byte cryptographically-strong random sequence then
         encoded using a base 64 encoding.
@@ -123,7 +77,7 @@ class SessionToken(GenericModel):
         return token
 
     @classmethod
-    def invalidate_existing_tokens_for_user(cls, user):
+    def invalidate_tokens(cls, user):
         """Invalidate any previous valid tokens for the given user in the
         datastore, this is done by setting the valid attribute to false.
 
@@ -139,9 +93,3 @@ class SessionToken(GenericModel):
             to_store.append(result)
         for result in to_store:
             result.put()
-
-# : Mapping from service name strings to the provider class
-provider_map = {'facebook' : FacebookProvider,
-                'google' : GoogleProvider,
-                'twitter' : TwitterProvider,
-                'linkedin2' : LinkedinProvider}

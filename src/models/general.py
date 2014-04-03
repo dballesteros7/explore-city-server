@@ -45,7 +45,7 @@ class GenericModel(ndb.Model):
         return []
 
     @classmethod
-    def query_by_urlsafe(cls, urlsafe):
+    def get_by_urlsafe(cls, urlsafe):
         '''
         Query for a single object given its key in urlsafe format.
         '''
@@ -54,7 +54,7 @@ class GenericModel(ndb.Model):
         return model_instance
 
     @classmethod
-    def query_all(cls, max_results, ancestor = None):
+    def query_all(cls, max_results = None, ancestor = None):
         '''
         Query for all objects of this kind. Restrict the number of results
         to the given limit. None indicates return all results.

@@ -13,10 +13,9 @@ class BaseHandler(webapp2.RequestHandler):
     management.
     '''
 
-
     def dispatch(self):
         # Get the session store for the request
-        self.session_store = sessions.get_store(request=self.request)
+        self.session_store = sessions.get_store(request = self.request)
 
         try:
             # Dispatch the request.
@@ -29,11 +28,11 @@ class BaseHandler(webapp2.RequestHandler):
     def session(self):
         # Returns a session using the default cookie key.
         return self.session_store.get_session()
-    
+
     @webapp2.cached_property
     def jinja2(self):
         # Returns a Jinja2 renderer cached in the app registry.
-        return jinja2.get_jinja2(app=self.app)
+        return jinja2.get_jinja2(app = self.app)
 
     def render_response(self, _template, **context):
         # Renders a template and writes the result to the response.
