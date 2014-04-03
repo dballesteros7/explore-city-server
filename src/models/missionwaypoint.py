@@ -6,7 +6,6 @@ Created on Dec 9, 2013
 @author: diegob
 '''
 from google.appengine.ext import ndb
-from google.appengine.ext.blobstore.blobstore import BlobInfo
 
 from geocell import utils
 from models.mission import Mission

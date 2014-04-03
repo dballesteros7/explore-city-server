@@ -6,6 +6,14 @@ It defines shared functionality with all webapp2 handlers.
 import webapp2
 from webapp2_extras import sessions, jinja2
 
+from models.auth import AccessToken
+
+
+class NoTokenError(Exception):
+    pass
+
+class NoUserError(Exception):
+    pass
 
 class BaseHandler(webapp2.RequestHandler):
     '''
@@ -38,3 +46,13 @@ class BaseHandler(webapp2.RequestHandler):
         # Renders a template and writes the result to the response.
         rv = self.jinja2.render_template(_template, **context)
         self.response.write(rv)
+
+    def get_user(self, user_required = True):
+        try:
+            token_string = self.request.params['access_token']
+            user = AccessToken.validate_token(token_string)
+            if user is None and user_required:
+                raise NoUserError()
+            return user
+        except KeyError:
+            raise NoTokenError()

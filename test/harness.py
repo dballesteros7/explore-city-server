@@ -4,7 +4,6 @@ import webtest
 
 from entry_point import app
 
-
 class TestHarness(object):
 
     def setup(self):
@@ -14,6 +13,8 @@ class TestHarness(object):
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
         self.testbed.init_urlfetch_stub()
+        self.testbed.init_blobstore_stub()
+        self.testbed.init_files_stub()
 
     def destroy(self):
         self.testbed.deactivate()

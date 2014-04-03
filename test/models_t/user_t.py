@@ -2,7 +2,7 @@ import unittest
 
 from harness import TestHarness
 from models.user import User, ExistingGoogleIdError, ExistingUsernameError, \
-    ExistingEmailError
+    ExistingEmailError, GoogleIdentity
 
 
 def test_user():
@@ -14,6 +14,28 @@ def test_user():
     user_1_username = 'maleficent'
     user_1_email = 'maleficent@castle.com'
     return User.create(user_1_email, user_1_username, mockup_auth_info)
+
+class GoogleIdentityTest(unittest.TestCase):
+
+    def setUp(self):
+        self.testharness = TestHarness()
+        self.testharness.setup()
+
+    def tearDown(self):
+        self.testharness.destroy()
+
+    def test_create(self):
+        """Simple test for creation of a GoogleIdentity instance."""
+        mockup_auth_info = {'access_token':'1/fFAGRNJru1FTz70BzhT3Zg',
+                            'refresh_token' : '2/fFAGRNJru1FTz80BzhT3Zg',
+                            'expires_in':3920,
+                            'token_type':'Bearer',
+                            'user_gid' : '1234567890'}
+        result = GoogleIdentity.create(mockup_auth_info)
+        self.assertEqual(result.access_token, mockup_auth_info['access_token'])
+        self.assertEqual(result.refresh_token, mockup_auth_info['refresh_token'])
+        self.assertEqual(result.user_gid, mockup_auth_info['user_gid'])
+
 
 class UserTest(unittest.TestCase):
 

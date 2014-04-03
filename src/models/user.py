@@ -1,6 +1,7 @@
+from datetime import datetime
 from google.appengine.ext import ndb
+import time
 
-from models.auth import GoogleIdentity
 from models.general import GenericModel
 
 
@@ -25,6 +26,39 @@ class NonExistentUserError(Exception):
     """Exception triggered when a non-existent user is requested from the
     datastore.
     """
+
+class GoogleIdentity(GenericModel):
+    """Google identity provider, this model functions as an StructuredProperty
+    for the User model. It stores the credentials necessary for using the
+    Google APIs on behalf of the user."""
+
+    user_gid = ndb.StringProperty(required = True)
+    access_token = ndb.StringProperty(required = True)
+    refresh_token = ndb.StringProperty(required = True)
+    expiration_time = ndb.DateTimeProperty(required = True)
+
+    @classmethod
+    def create(cls, auth_info):
+        """Method to create a new instance containing the credentials of an
+        user in Google.
+        
+        Args:
+            auth_info: Dict with the credentials of the user in google, it
+            requires the following keys:
+                * user_gid -- The user's Google id.
+                * access_token -- Short-lived access token for the user.
+                * refresh_token -- Long-lived token to request new access
+                                   tokens.
+                * expires_in -- Time until expiration of the access token.
+
+        Returns:
+            Instance of the GoogleIdentity model with the given credentials.
+        """
+        return cls(user_gid = auth_info['user_gid'],
+                   access_token = auth_info['access_token'],
+                   refresh_token = auth_info['refresh_token'],
+                   expiration_time = datetime.utcfromtimestamp(
+                                time.time() + float(auth_info['expires_in'])))
 
 class User(GenericModel):
     """Model class that represents an user for the app."""

@@ -26,7 +26,7 @@ class TokenResource(BaseResource):
         AccessToken.invalidate_tokens(the_user)
         token = AccessToken.create(the_user)
         self.build_base_response()
-        response_body = {'access_token' : token.token_hash,
+        response_body = {'access_token' : token.token_string,
                          'expires_on' : calendar.timegm(token.expires_on.utctimetuple()),
                          'created_on' : calendar.timegm(token.created_on.utctimetuple()) }
         self.response.out.write(json.dumps(response_body))

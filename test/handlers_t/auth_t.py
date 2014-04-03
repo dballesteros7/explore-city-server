@@ -21,7 +21,7 @@ class TokenResourceTest(unittest.TestCase):
         self.assertEqual(resp.status_int, 200)
         json_resp = resp.json
         single_token = AccessToken.query_all(1)[0]
-        self.assertEqual(json_resp['access_token'], single_token.token_hash)
+        self.assertEqual(json_resp['access_token'], single_token.token_string)
         self.assertEqual(json_resp['expires_on'] - json_resp['created_on'],
                          _ACCESS_TOKEN_EXPIRATION_TIME)
         resp = self.testharness.testapp.get('/auth/token',

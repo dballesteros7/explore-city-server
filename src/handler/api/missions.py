@@ -14,7 +14,19 @@ from models.mission import Mission
 from models.missionwaypoint import MissionWaypoint
 from webutils import parseutils
 from handler.auth import login_required
+from models.missionprogress import MissionProgress
 
+class NoMissionError(Exception):
+    pass
+
+class NoMissionProgressError(Exception):
+    pass
+
+class MismatchingUserError(Exception):
+    pass
+
+class NoMissionWaypointError(Exception):
+    pass
 
 class MissionResource(BaseResource):
     '''
@@ -179,6 +191,50 @@ class MissionResource(BaseResource):
         # TODO: Clean all submissions related to this mission
         self.build_base_response()
         self.response.out.write(json.dumps(None))
+
+    def mission_start(self, name):
+        """Handler method for reporting the start of a mission by an user in
+        the mobile app. The user is identified by the access token provided
+        in the query parameters.
+        """
+        user = self.get_user()
+        mission = Mission.query_by_id(name)
+        if not mission:
+            raise NoMissionError()
+        mission = mission[0]
+        mission_progress = MissionProgress(user = user,
+                                           mission = mission.key)
+        mission_progress.start_mission()
+
+        self.build_base_response()
+        self.response.out.write(json.dumps({'mission_progress_id' : mission_progress.key.urlsafe()}))
+
+    def mission_finish(self, progress_id):
+        user = self.get_user()
+        mission_progress = MissionProgress.get_by_urlsafe(progress_id)
+        if mission_progress is None:
+            raise NoMissionProgressError()
+        if mission_progress.user != user:
+            raise MismatchingUserError()
+
+        mission_progress.finish_mission()
+        self.build_base_response()
+        self.response.out.write(json.dumps({'mission_progress_id' : mission_progress.key.urlsafe()}))
+
+    def mission_complete_waypoint(self, progress_id, waypoint):
+        user = self.get_user()
+        mission_progress = MissionProgress.get_by_urlsafe(progress_id)
+        if mission_progress is None:
+            raise NoMissionProgressError()
+        if mission_progress.user != user:
+            raise MismatchingUserError()
+        waypoint_obj = MissionWaypoint.query_by_id(waypoint)
+        if not waypoint_obj:
+            raise NoMissionWaypointError()
+        waypoint_obj = waypoint_obj[0]
+        mission_progress.complete_waypoint(waypoint_obj.key)
+        self.build_base_response()
+        self.response.out.write(json.dumps({'mission_progress_id' : mission_progress.key.urlsafe()}))
 
     ###########################################################################
     # Utility methods
