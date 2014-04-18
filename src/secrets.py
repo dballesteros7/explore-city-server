@@ -3,6 +3,8 @@ session_cookie_key = "Il0v3c00ki3ss41dth3c00k13m0ns74"
 # Google APIs
 GOOGLE_APP_ID = '528090180269-rj0gvnu2toemhtee60nks0i45cgkodb8.apps.googleusercontent.com'
 GOOGLE_APP_SECRET = 'iIRyGNuR1ZyXnCzv82XOTOg4'
+GOOGLE_APP_BROWSER_KEY = 'AIzaSyAYlv4vmkRb3AD1VDWPWCJvQ-SZiLhUCF0'
+GOOGLE_APP_SERVER_KEY = 'AIzaSyBJWijKmFSCDi9U5ZboNGIxqxZbTStqoPI'
 GOOGLE_REDIRECT_URI_ANDROID = 'urn:ietf:wg:oauth:2.0:oob'
 
 # Facebook auth apis

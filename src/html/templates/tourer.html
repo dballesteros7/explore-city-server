@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html ng-app="xploreTourer">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tourer</title>
+<link rel="stylesheet"
+  href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/tourer.css">
+</head>
+<body ng-controller="mapCtrl">
+  <google-map center="map.center" zoom="map.zoom" control="map.control">
+  <markers models="places" coords="'self'" click="markerClicked"
+    icon="'icon'"></markers> </google-map>
+  <!--
+-->
+  <div id="controls">
+    <h2>Types</h2>
+    <ul class="list-unstyled">
+      <li ng-repeat="type in types"><input type="checkbox"
+        ng-model="type.selected">{{type.name}}</li>
+    </ul>
+    <dl>
+      <dt>Query ID:</dt>
+      <dd>{{queryId}}</dd>
+      <dt>Selected types:</dt>
+      <dd>{{types | selected}}</dd>
+    </dl>
+    <button class="btn btn-primary" ng-click="newQuery()"
+      ng-disabled="!queryId">New query</button>
+    <button class="btn btn-primary" ng-click="retrievePlaces()"
+      ng-disabled="queryId">Retrieve places</button>
+    <button class="btn btn-primary" ng-click="drawRadius()">Draw
+      search radius</button>
+    <button class="btn btn-primary" ng-click="orienteering()">Orienteering</button>
+  </div>
+  <!-- Google Maps API -->
+  <script type="text/javascript"
+    src="https://maps.googleapis.com/maps/api/js?key=<%= google_maps_key %>&sensor=false"></script>
+  <!-- Superheroic AngularJS -->
+  <script type="text/javascript"
+    src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+  <!-- Underscore -->
+  <script type="text/javascript"
+    src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+  <!-- Google Maps AngularJS directives -->
+  <script type="text/javascript"
+    src="/js/lib/angular-google-maps.min.js"></script>
+  <!-- Local files -->
+  <script type="text/javascript" src="/js/apps/tourer.js"></script>
+  <script type="text/javascript" src="/js/controllers/tourer.js"></script>
+</body>
+</html>

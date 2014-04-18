@@ -9,6 +9,8 @@ from handler.api.users import UserResource
 from handler.api.waypoints import WaypointResource
 from handler.pages.admin import AdminPage
 import secrets
+from handler.pages.tourer import TourerPage
+from handler.api.tourer import TourerHandler
 
 config = {}
 config['webapp2_extras.sessions'] = {
@@ -17,8 +19,13 @@ config['webapp2_extras.sessions'] = {
                      # 'httponly' : True
                      }
 }
-config['webapp2_extras.jinja2'] = {
-                                   'template_path' : 'html/templates'}
+config['webapp2_extras.jinja2'] = {'template_path' : 'html/templates',
+                                   'environment_args' : {'block_start_string' : '<%',
+                                                         'block_end_string' : '%>',
+                                                         'variable_start_string' : '<%=',
+                                                         'variable_end_string' : '%>',
+                                                         'comment_start_string' : '<%#',
+                                                         'comment_end_string' : '%>'}}
 
 app = webapp2.WSGIApplication([
   # API routes
@@ -38,8 +45,12 @@ app = webapp2.WSGIApplication([
   RedirectRoute(r'/api/submissions/<name>', handler = SubmissionResource, name = 'submissions-resource-named', strict_slash = True),
   RedirectRoute(r'/api/users', handler = UserResource, name = 'users-resource', strict_slash = True),
   RedirectRoute(r'/api/users/<userkey>', handler = UserResource, name = 'users-resource-named', strict_slash = True),
+  RedirectRoute(r'/api/tourer/places', handler = TourerHandler, handler_method = 'retrieve_places_for_types', name = 'tourer-1', strict_slash = True),
+  RedirectRoute(r'/api/tourer/types', handler = TourerHandler, handler_method = 'retrieve_types', name = 'tourer-2', strict_slash = True),
+  RedirectRoute(r'/api/tourer/crazy', handler = TourerHandler, handler_method = 'crazy', name = 'tourer-3', strict_slash = True),
   # Auth API
   RedirectRoute(r'/auth/token', handler = TokenResource, name = 'auth-token-provider', methods = ['GET'], strict_slash = True),
   # HTML pages
   RedirectRoute(r'/admin', handler = AdminPage, name = 'admin-page', methods = ['GET'], strict_slash = True),
+  RedirectRoute(r'/tourer', handler = TourerPage, name = 'tourer-page', methods = ['GET'], strict_slash = True),
 ], config = config)

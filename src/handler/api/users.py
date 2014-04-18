@@ -1,5 +1,3 @@
-'''Module that provides the user API for the server.
-'''
 from google.appengine.api import urlfetch
 import json
 import urllib
