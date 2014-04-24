@@ -1,11 +1,10 @@
 from datetime import datetime
 from google.appengine.ext import ndb
-import time
+from time import time
 
-from models.general import GenericModel
+from . import GenericModel
 
-
-_DEFAULT_USER_ROOT = ndb.Key('UserRoot', 'default')
+__all__ = ['GoogleIdentity', 'User']
 
 class ExistingUsernameError(Exception):
     """Exception that is triggered by attempting to create an user with
@@ -58,7 +57,7 @@ class GoogleIdentity(GenericModel):
                    access_token = auth_info['access_token'],
                    refresh_token = auth_info['refresh_token'],
                    expiration_time = datetime.utcfromtimestamp(
-                                time.time() + float(auth_info['expires_in'])))
+                                time() + float(auth_info['expires_in'])))
 
 class User(GenericModel):
     """Model class that represents an user for the app."""
@@ -155,13 +154,3 @@ class User(GenericModel):
                           credentials = google_credentials)
         user_object.put()
         return user_object
-
-    @classmethod
-    def default_ancestor(cls):
-        """Override the default ancestor for user objects.
-
-        Returns:
-            Default ancestor key as defined in the modules as
-            _DEFAULT_USER_ROOT.
-        """
-        return _DEFAULT_USER_ROOT

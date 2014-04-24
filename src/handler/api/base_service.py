@@ -41,16 +41,21 @@ class BaseResource(BaseHandler):
         Since this dictionary may come directly from the request then it is
         immutable.
         '''
-        if not self.request.headers.get('Content_Type'):
+        
+        if not self.request.headers.get('Content_Type') and\
+            not self.request.headers.get('Content-Type') :
             return self.request.params
-        if json_accepted and 'application/json' in self.request.headers.get('Content_Type'):
+        content_key = 'Content_Type'
+        if not self.request.headers.get(content_key):
+            content_key = 'Content-Type'
+        if json_accepted and 'application/json' in self.request.headers.get(content_key):
             try:
                 parameters = json.loads(self.request.body)
             except:
                 # Assume bad JSON
                 self.abort(400, detail = 'Bad JSON body.')
         elif urlencoded_accepted and \
-            'application/x-www-form-urlencoded' in self.request.headers.get('Content_Type'):
+            'application/x-www-form-urlencoded' in self.request.headers.get(content_key):
             parameters = self.request.params
         else:
             webapp2.abort(400, detail = 'Bad content type in header.')

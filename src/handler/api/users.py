@@ -5,7 +5,7 @@ import urllib
 from handler.api.base_service import BaseResource
 from lexicon import LexiconError
 import lexicon
-from models.user import User
+from database.models import User
 import secrets
 
 

@@ -7,11 +7,12 @@ import unittest
 
 from harness import TestHarnessWithWeb
 from secrets_t import GOOGLE_USER_ID, GOOGLE_CODE
-
+import secrets
 
 class TestUsersResource(unittest.TestCase):
 
     def setUp(self):
+        secrets.GOOGLE_REDIRECT_URI_ANDROID = secrets.GOOGLE_REDIRECT_URI
         self.testharness = TestHarnessWithWeb()
         self.testharness.setup()
 

@@ -1,7 +1,8 @@
 import unittest
 
 from harness import TestHarness
-from models.user import User, ExistingGoogleIdError, ExistingUsernameError, \
+from database.models import User
+from database.models.user import  ExistingGoogleIdError, ExistingUsernameError, \
     ExistingEmailError, GoogleIdentity
 
 
@@ -69,12 +70,12 @@ class UserTest(unittest.TestCase):
         self.assertEqual(user_1.key, User.get_by_email(user_1_email).key)
         self.assertEqual(user_1.key, User.get_by_username(user_1_username).key)
         self.assertEqual(user_1.key, User.get_by_google_id(mockup_auth_info['user_gid']).key)
-        self.assertEqual(len(User.query_all()), 1)
+        self.assertEqual(len(User.get_all()), 1)
         self.assertRaises(ExistingGoogleIdError, User.create, user_2_email, user_2_username, mockup_auth_info)
         self.assertRaises(ExistingUsernameError, User.create, user_2_email, user_1_username, mockup_auth_info_2)
         self.assertRaises(ExistingEmailError, User.create, user_1_email, user_2_username, mockup_auth_info_2)
         User.create(user_2_email, user_2_username, mockup_auth_info_2)
-        self.assertEqual(len(User.query_all()), 2)
+        self.assertEqual(len(User.get_all()), 2)
         return
 
 if __name__ == "__main__":

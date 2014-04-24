@@ -15,6 +15,7 @@ class TestHarness(object):
         self.testbed.init_urlfetch_stub()
         self.testbed.init_blobstore_stub()
         self.testbed.init_files_stub()
+        self.testbed.init_images_stub()
 
     def destroy(self):
         self.testbed.deactivate()

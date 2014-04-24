@@ -4,8 +4,9 @@ from google.appengine.ext import ndb
 
 from Crypto import Random
 
-from models.general import GenericModel
+from . import GenericModel
 
+__all__ = ['AccessToken']
 
 _ACCESS_TOKEN_EXPIRATION_TIME = 24 * 3600 # 12h tokens
 _TOKEN_BYTE_LENGTH = 32

@@ -1,9 +1,10 @@
 import calendar
 import json
 
+from database.models import User, AccessToken
+from database.models.user import NonExistentUserError
 from handler.api.base_service import BaseResource
-from models.user import User, NonExistentUserError
-from models.auth import AccessToken
+
 
 class TokenResource(BaseResource):
     """Resource class that handles the creation and invalidation of session
