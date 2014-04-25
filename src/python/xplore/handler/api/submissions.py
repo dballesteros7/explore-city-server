@@ -36,7 +36,7 @@ class SubmissionResource(BaseResource):
         equal to 'application/json'.
         '''
         # Check the content type and parse the argument appropriately
-        parameters = self.parse_request_body(urlencoded_accepted=False)
+        parameters = self.parse_request_body()
         # Verify the input parameters
         model_params = self.validate_parameters_post(parameters)
         # Get the user

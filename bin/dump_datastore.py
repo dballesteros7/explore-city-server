@@ -40,11 +40,11 @@ def get_missions(base_host, output_file):
     json.dump(data, output_file)
 
 def main():
-    data_dir = os.path.join(os.path.dirname(__file__), '../data/prod')
+    data_dir = os.path.join(os.path.dirname(__file__), '../data/dev')
     waypoint_file = open(os.path.join(data_dir, 'waypoints.json'), 'w')
     mission_file = open(os.path.join(data_dir, 'missions.json'), 'w')
-    get_waypoints('https://street-view-density.appspot.com/api', waypoint_file, data_dir)
-    get_missions('https://street-view-density.appspot.com/api', mission_file)
+    get_waypoints('https://dev-dot-street-view-density.appspot.com/api', waypoint_file, data_dir)
+    get_missions('https://dev-dot-street-view-density.appspot.com/api', mission_file)
     waypoint_file.close()
     mission_file.close()
 
