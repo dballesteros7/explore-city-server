@@ -1,9 +1,9 @@
 import calendar
 import json
 
-from database.models import User, AccessToken
-from database.models.user import NonExistentUserError
-from handler.api.base_service import BaseResource
+from xplore.database.models import User, AccessToken
+from xplore.database.models.user import NonExistentUserError
+from xplore.handler.api.base_service import BaseResource
 
 
 class TokenResource(BaseResource):

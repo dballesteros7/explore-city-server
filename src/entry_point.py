@@ -1,14 +1,19 @@
+import sys
+import os.path
+sys.path.append(os.path.join(os.path.dirname(__file__), 'python/'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/geomodel/'))
+
 import webapp2
 from webapp2_extras.routes import RedirectRoute
 
-from handler.api.auth import TokenResource
-from handler.api.imageservice import ImageUploadHandler, ImageUploadUrlProvider
-from handler.api.missions import MissionResource
-#from handler.api.submissions import SubmissionResource
-from handler.api.users import UserResource
-from handler.api.waypoints import WaypointResource
-from handler.pages.admin import AdminPage
-import secrets
+from xplore.handler.api.auth import TokenResource
+from xplore.handler.api.imageservice import ImageUploadHandler, ImageUploadUrlProvider
+from xplore.handler.api.missions import MissionResource
+from xplore.handler.api.submissions import SubmissionResource
+from xplore.handler.api.users import UserResource
+from xplore.handler.api.waypoints import WaypointResource
+from xplore.handler.pages.admin import AdminPage
+from xplore import secrets
 
 config = {}
 config['webapp2_extras.sessions'] = {
@@ -39,8 +44,8 @@ app = webapp2.WSGIApplication([
                 methods = ['POST'], strict_slash = True),
   RedirectRoute(r'/api/missions/<progress_id>/complete/<waypoint>', handler = MissionResource, handler_method = 'mission_complete_waypoint', name = 'mission-resource-complete-waypoint',
                 methods = ['POST'], strict_slash = True),
-  #RedirectRoute(r'/api/submissions', handler = SubmissionResource, name = 'submissions-resource', strict_slash = True),
-  #RedirectRoute(r'/api/submissions/<name>', handler = SubmissionResource, name = 'submissions-resource-named', strict_slash = True),
+  RedirectRoute(r'/api/submissions', handler = SubmissionResource, name = 'submissions-resource', strict_slash = True),
+  RedirectRoute(r'/api/submissions/<name>', handler = SubmissionResource, name = 'submissions-resource-named', strict_slash = True),
   RedirectRoute(r'/api/users', handler = UserResource, name = 'users-resource', strict_slash = True),
   RedirectRoute(r'/api/users/<userkey>', handler = UserResource, name = 'users-resource-named', strict_slash = True),
   # Auth API

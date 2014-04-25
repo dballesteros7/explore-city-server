@@ -5,8 +5,8 @@ Created on Jan 27, 2014
 @author: diegob
 '''
 
-from handler.auth import login_required
-from handler.base import BaseHandler
+from xplore.handler.auth import login_required
+from xplore.handler.base import BaseHandler
 
 class AdminPage(BaseHandler):
     '''

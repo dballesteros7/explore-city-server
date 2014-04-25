@@ -1,7 +1,7 @@
 import unittest
 
-from database.models import AccessToken
-from database.models.auth import _ACCESS_TOKEN_EXPIRATION_TIME
+from xplore.database.models import AccessToken
+from xplore.database.models.auth import _ACCESS_TOKEN_EXPIRATION_TIME
 from harness import TestHarnessWithWeb
 from models_t.user_t import test_user
 

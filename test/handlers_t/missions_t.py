@@ -3,7 +3,7 @@ from google.appengine.ext import ndb
 import json
 import unittest
 
-from database.models import MissionProgress, MissionWaypoint
+from xplore.database.models import MissionProgress, MissionWaypoint
 from harness import TestHarnessWithWeb
 from models_t.auth_t import test_token
 from models_t.missionprogress_t import test_mission

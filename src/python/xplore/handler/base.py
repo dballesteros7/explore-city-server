@@ -6,7 +6,7 @@ It defines shared functionality with all webapp2 handlers.
 import webapp2
 from webapp2_extras import sessions, jinja2
 
-from database.models import AccessToken
+from xplore.database.models import AccessToken
 
 
 class NoTokenError(Exception):

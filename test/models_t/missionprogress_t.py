@@ -2,7 +2,7 @@ from google.appengine.api import files
 from google.appengine.ext import ndb
 import unittest
 
-from database.models import Mission, MissionProgress, MissionWaypoint
+from xplore.database.models import Mission, MissionProgress, MissionWaypoint
 from harness import TestHarness
 from models_t.user_t import test_user
 

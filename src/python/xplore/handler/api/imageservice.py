@@ -10,8 +10,8 @@ from google.appengine.ext.blobstore import create_upload_url
 from google.appengine.ext.webapp import blobstore_handlers
 import json
 
-from handler.auth import login_required
-from handler.base import BaseHandler
+from xplore.handler.auth import login_required
+from xplore.handler.base import BaseHandler
 
 
 class ImageUploadHandler(blobstore_handlers.BlobstoreUploadHandler):

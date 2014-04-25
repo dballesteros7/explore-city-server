@@ -1,7 +1,7 @@
-{% extends "layout.html" %} {% block title %}Xplore Administrator
-Console{% endblock title %} {% block head %} {{super()}}
+<% extends "layout.html" %> <% block title %>Xplore Administrator
+Console<% endblock title %> <% block head %> <%=super()%>
 <link rel="stylesheet" type="text/css" href="/stylesheets/admin.css" />
-{% endblock head %} {% block content %}
+<% endblock head %> <% block content %>
 <div id="map-container" class="col-lg-8">
   <div id="admin-map"></div>
 </div>
@@ -106,7 +106,7 @@ Console{% endblock title %} {% block head %} {{super()}}
       name="image"></input>
   </form>
 </div>
-{% endblock content %} {% block jslibs %} {{super()}}
+<% endblock content %> <% block jslibs %> <%=super()%>
 <script type="text/javascript"
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJWijKmFSCDi9U5ZboNGIxqxZbTStqoPI&sensor=false">
     
@@ -117,4 +117,4 @@ Console{% endblock title %} {% block head %} {{super()}}
   src="/javascript/external/jquery.blockUI.min.js"></script>
 <script type="text/javascript"
   src="/javascript/external/jquery.form.min.js"></script>
-{% endblock jslibs %}
+<% endblock jslibs %>

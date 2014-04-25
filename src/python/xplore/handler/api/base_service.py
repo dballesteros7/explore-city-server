@@ -8,7 +8,7 @@ Created on Jan 16, 2014
 import json
 import webapp2
 
-from handler.base import BaseHandler
+from xplore.handler.base import BaseHandler
 
 
 class QueryType:

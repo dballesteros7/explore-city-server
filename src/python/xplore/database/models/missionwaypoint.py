@@ -3,9 +3,10 @@ from google.appengine.ext.ndb.blobstore import BlobInfo
 
 from geomodel import GeoModel
 from geotypes import Box
+from xplore.database.utils import get_missions_for_waypoint
 
 from . import GenericModel
-from database.utils import get_missions_for_waypoint
+
 
 __all__ = ['MissionWaypoint']
 
@@ -42,7 +43,7 @@ class MissionWaypoint(GenericModel, GeoModel):
     @classmethod
     def query_near(cls, center, max_results=None, max_distance=0):
         if max_results is None:
-            max_results = cls.MAX_QUERY_RESULTS
+            max_results = cls._MAX_QUERY_RESULTS
         base_query = cls.query()
         results = cls.proximity_fetch(base_query, center,
                                       max_results, max_distance)
@@ -51,7 +52,7 @@ class MissionWaypoint(GenericModel, GeoModel):
     @classmethod
     def query_box(cls, north, east, south, west, max_results=None):
         if max_results is None:
-            max_results = cls.MAX_QUERY_RESULTS
+            max_results = cls._MAX_QUERY_RESULTS
         query_box = Box(north, east, south, west)
         base_query = cls.query()
         results = cls.bounding_box_fetch(base_query, query_box, max_results)

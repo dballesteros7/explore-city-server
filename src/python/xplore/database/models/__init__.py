@@ -12,3 +12,6 @@ from missionprogress import *
 __all__ += missionprogress.__all__
 from user import *
 __all__ += user.__all__
+from submission import *
+__all__ += submission.__all__
+

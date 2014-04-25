@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-{% block head %}
+<% block head %>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}Xplore{% endblock title %}</title>
+<title><% block title %>Xplore<% endblock title %></title>
 <link href='http://fonts.googleapis.com/css?family=Varela+Round'
   rel='stylesheet' type='text/css'>
 <link rel="stylesheet" href="/stylesheets/reset.css">
@@ -14,12 +14,12 @@
 <link rel="stylesheet"
   href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
 
-{% endblock head %}
+<% endblock head %>
 </head>
 <body>
   <div id="main" class="container">
     <header>
-      {% block header %}
+      <% block header %>
       <nav class="navbar navbar-default" role="navigation">
         <div class="container-fluid">
           <div class="navbar-header">
@@ -39,10 +39,10 @@
           </div>
         </div>
       </nav>
-      {% endblock header %}
+      <% endblock header %>
     </header>
     <div id="content" class="row">
-      {% block content %}
+      <% block content %>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         Suspendisse convallis, eros id imperdiet porttitor, augue nisi
         feugiat tortor, eu euismod arcu lacus ac nulla. Nam fermentum
@@ -94,11 +94,11 @@
         purus a vestibulum. Quisque nulla orci, sagittis sed tellus
         quis, luctus hendrerit ipsum. Aenean eros tellus, semper non
         tincidunt ac, faucibus ac enim.</p>
-      {% endblock content %}
+      <% endblock content %>
     </div>
     <hr>
     <footer class="row">
-      {% block footer %}
+      <% block footer %>
       <ul class="col-sm-6 list-inline">
         <li><a href="/home">Home</a></li>
         <li><a href="/doc">Documentation</a></li>
@@ -114,16 +114,16 @@
         <img class="img-responsive" id="footer-python-logo"
           src="/img/python-powered-w-70x28.png" />
       </div>
-      {% endblock footer %}
+      <% endblock footer %>
     </footer>
   </div>
-  {% block jslibs %}
+  <% block jslibs %>
   <script
     src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
   <script
     src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
   <script
     src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-  {% endblock jslibs %}
+  <% endblock jslibs %>
 </body>
 </html>

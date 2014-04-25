@@ -23,7 +23,7 @@ def upload_missions(mission_json, base_host):
         create_mission(mission['name'], [x['name'] for x in mission['waypoints']], base_host)
 
 def main():
-    data_dir = os.path.join(os.path.dirname(__file__), '../data/')
+    data_dir = os.path.join(os.path.dirname(__file__), '../data/dev')
     waypoint_json_f = open(os.path.join(data_dir, 'waypoints.json'))
     upload_waypoints(waypoint_json_f, 'http://localhost:8080/api')
     waypoint_json_f.close()

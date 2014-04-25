@@ -1,7 +1,7 @@
 import unittest
 
 from harness import TestHarness
-from database.models import AccessToken
+from xplore.database.models import AccessToken
 from models_t import user_t
 
 def test_token():

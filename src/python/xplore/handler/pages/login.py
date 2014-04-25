@@ -4,7 +4,7 @@
 '''
 from google.appengine.ext import ndb
 
-from handler.base import BaseHandler
+from xplore.handler.base import BaseHandler
 
 
 class LoginPage(BaseHandler):

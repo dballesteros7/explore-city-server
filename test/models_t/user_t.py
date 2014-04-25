@@ -1,8 +1,8 @@
 import unittest
 
 from harness import TestHarness
-from database.models import User
-from database.models.user import  ExistingGoogleIdError, ExistingUsernameError, \
+from xplore.database.models import User
+from xplore.database.models.user import  ExistingGoogleIdError, ExistingUsernameError, \
     ExistingEmailError, GoogleIdentity
 
 

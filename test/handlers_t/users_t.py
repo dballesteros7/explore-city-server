@@ -7,7 +7,7 @@ import unittest
 
 from harness import TestHarnessWithWeb
 from secrets_t import GOOGLE_USER_ID, GOOGLE_CODE
-import secrets
+import xplore.secrets as secrets
 
 class TestUsersResource(unittest.TestCase):
 

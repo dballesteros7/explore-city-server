@@ -1,12 +1,13 @@
 from google.appengine.api.images import get_serving_url
 from google.appengine.ext import ndb
-from google.appengine.ext.ndb.blobstore import BlobKey, BlobInfo
+from google.appengine.ext.ndb.blobstore import BlobKey
+from google.appengine.ext.blobstore import BlobInfo
 import json
 
-from database.models import MissionWaypoint
 from geotypes import Point
-from handler.api.base_service import BaseResource, QueryType
-from webutils import parseutils
+from xplore.database.models import MissionWaypoint
+from xplore.handler.api.base_service import BaseResource, QueryType
+from xplore.webutils import parseutils
 
 
 class WaypointResource(BaseResource):

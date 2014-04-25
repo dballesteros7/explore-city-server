@@ -7,10 +7,10 @@ Created on Jan 10, 2014
 from google.appengine.api.images import get_serving_url
 import json
 
-from database.models import Mission, MissionWaypoint, MissionProgress
+from xplore.database.models import Mission, MissionWaypoint, MissionProgress
 from geotypes import Point
-from handler.api.base_service import BaseResource, QueryType
-from webutils import parseutils
+from xplore.handler.api.base_service import BaseResource, QueryType
+from xplore.webutils import parseutils
 
 
 class NoMissionError(Exception):

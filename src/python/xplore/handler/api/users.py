@@ -2,12 +2,11 @@ from google.appengine.api import urlfetch
 import json
 import urllib
 
-from handler.api.base_service import BaseResource
-from lexicon import LexiconError
-import lexicon
-from database.models import User
-import secrets
-
+from xplore.handler.api.base_service import BaseResource
+from xplore.lexicon import LexiconError
+from xplore import lexicon
+from xplore.database.models import User
+from xplore import secrets
 
 class UserResource(BaseResource):
     """Base API class for users in the system."""
