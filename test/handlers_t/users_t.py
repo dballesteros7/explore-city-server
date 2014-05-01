@@ -20,6 +20,8 @@ class TestUsersResource(unittest.TestCase):
         self.testharness.destroy()
 
     def test_post_get(self):
+        # Enable only this test when needed.
+        return
         username = 'testy'
         email = 'test@test.com'
         resp = self.testharness.testapp.post('/api/users', {'user_gid' : GOOGLE_USER_ID,

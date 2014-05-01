@@ -1,35 +1,37 @@
 import base64
-from datetime import timedelta
+from datetime import datetime, timedelta
 from google.appengine.ext import ndb
 
 from Crypto import Random
 
 from . import GenericModel
+from ..errors import ExpiredTokenError, InvalidTokenError, NotExistentTokenError
+
 
 __all__ = ['AccessToken']
 
-_ACCESS_TOKEN_EXPIRATION_TIME = 24 * 3600 # 12h tokens
-_TOKEN_BYTE_LENGTH = 32
-
 class AccessToken(GenericModel):
-    """Access token model in the datastore."""
+    """Access token ndb model"""
 
-    associated_user = ndb.KeyProperty(kind = 'User', required = True)
-    created_on = ndb.DateTimeProperty(auto_now_add = True)
+    _ACCESS_TOKEN_EXPIRATION_TIME = 24 * 3600
+    _TOKEN_BYTE_LENGTH = 32
+
+    associated_user = ndb.KeyProperty(kind='User', required=True)
+    created_on = ndb.DateTimeProperty(auto_now_add=True)
     expires_on = ndb.ComputedProperty(lambda self : self.created_on +
-                    timedelta(seconds = _ACCESS_TOKEN_EXPIRATION_TIME))
-    token_string = ndb.StringProperty(required = True)
-    valid = ndb.BooleanProperty(default = True)
+                  timedelta(seconds=AccessToken._ACCESS_TOKEN_EXPIRATION_TIME))
+    token_string = ndb.StringProperty(required=True)
+    valid = ndb.BooleanProperty(default=True)
 
     @classmethod
     def create(cls, user):
         """Create a new secure session token for the user, the token_string is
-        generated as a 32-byte cryptographic-strong random sequence then
-        encoded using a base 64 encoding.
+        generated as a 32-byte cryptographic-random sequence then
+        encoded using base64 encoding.
 
         The token is stored as a valid token in the datastore before this
         method returns.
-        
+
         Args:
             user: A valid instance of the User model.
         
@@ -37,11 +39,11 @@ class AccessToken(GenericModel):
             An instance of the SessionToken model, this represents the newly
             created token for the given user.
         """
-        random_bytes = Random.get_random_bytes(_TOKEN_BYTE_LENGTH)
+        random_bytes = Random.get_random_bytes(AccessToken._TOKEN_BYTE_LENGTH)
         session_token = base64.b64encode(random_bytes)
-        token = cls(parent = cls.default_ancestor(),
-                    associated_user = user.key,
-                    token_string = session_token)
+        token = cls(parent=cls.default_ancestor(),
+                    associated_user=user.key,
+                    token_string=session_token)
         token.put()
         return token
 
@@ -55,30 +57,41 @@ class AccessToken(GenericModel):
         """
         results = cls.query(cls.associated_user == user.key,
                             cls.valid == True,
-                            ancestor = cls.default_ancestor())
+                            ancestor=cls.default_ancestor())
         to_store = []
         for result in results:
             result.valid = False
             to_store.append(result)
+        futures = []
         for result in to_store:
-            result.put()
+            futures.append(result.put_async())
+        ndb.Future.wait_all(futures)
 
     @classmethod
     def validate_token(cls, query_token):
-        """Verify if a token exists given its random string and
-        retrieve the associated user key.
-        
+        """Verify if the given query_token matches a valid token in the
+        database. A valid token must have the valid property set to True
+        and have the expires_on property set after the current time.
+
         Args:
-            query_token: Token hash to validate.
-        
+            query_token: Token to validate.
+
         Returns:
-            Associated user key if the token matches an existing valid
-            token, None otherwise.
+            Associated user key if the token matches a valid
+            token.
+        Raises:
+            ExpiredTokenError -- if the given token is past expiration time.
+            InvalidTokenError -- if the given token is invalid.
+            NotExistentTokenError -- if the given token does not exist.
         """
         results = cls.query(cls.token_string == query_token,
-                            cls.valid == True,
-                            ancestor = cls.default_ancestor())
+                            ancestor=cls.default_ancestor())
         result = results.get()
         if result is not None:
+            if not result.valid:
+                raise InvalidTokenError()
+            if result.expires_on <= datetime.utcnow():
+                raise ExpiredTokenError()
             return result.associated_user
-        return None
+        else:
+            raise NotExistentTokenError()
