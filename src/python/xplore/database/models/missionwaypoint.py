@@ -1,11 +1,10 @@
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb.blobstore import BlobInfo
 
-from geomodel import GeoModel
-from geotypes import Box
-from xplore.database.utils import get_missions_for_waypoint
+from geo.geomodel import GeoModel
+from geo.geotypes import Box
 
-from . import GenericModel
+from general import GenericModel
 
 
 __all__ = ['MissionWaypoint']
@@ -61,9 +60,3 @@ class MissionWaypoint(GenericModel, GeoModel):
     @classmethod
     def default_ancestor(cls):
         return cls._DEFAULT_MISSION_WAYPOINT_ROOT
-
-    def delete(self):
-        related_missions = get_missions_for_waypoint(self.key)
-        map(lambda x: x.remove_waypoint(self.key), related_missions)
-        BlobInfo.get(self.image).delete()
-        self.key.delete()

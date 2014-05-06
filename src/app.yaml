@@ -5,35 +5,8 @@ api_version: 1
 threadsafe: true
 
 handlers:
-- url: /stylesheets
-  static_dir: stylesheets
-
-- url: /javascript
-  static_dir: javascript
-
-- url: /js
-  static_dir: js
-
-- url: /css
-  static_dir: css
-
-- url: /icons
-  static_dir: img/icons
-
-- url: /img
-  static_dir: img/
-
-# - url: /admin
-#   script: entry_point.app
-#   login: admin
-
-# - url: /admin/.*
-#   script: entry_point.app
-#   login: admin
-
-- url: /.*
+- url: /_ah/spi/.*
   script: entry_point.app
-#  login: required
 
 libraries:
 - name: webapp2
@@ -42,3 +15,5 @@ libraries:
   version: latest
 - name: pycrypto
   version: 2.6
+- name: endpoints
+  version: 1.0

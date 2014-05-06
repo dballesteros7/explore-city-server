@@ -4,17 +4,21 @@ from google.appengine.ext.ndb.blobstore import BlobKey
 from google.appengine.ext.blobstore import BlobInfo
 import json
 
-from geotypes import Point
-from xplore.database.models import MissionWaypoint
-from xplore.handler.api.base_service import BaseResource, QueryType
+import endpoints
+from protorpc import messages
+from protorpc import message_types
+from protorpc import remote
+
+from geo.geotypes import Point
+from xplore.database.models.missionwaypoint import MissionWaypoint
+from xplore.handler.api.base_service import QueryType
 from xplore.webutils import parseutils
 
 
-class WaypointResource(BaseResource):
+@endpoints.api(name='waypoints', version='v1')
+class MissionWaypointApi(remote.Service):
     """
-    Webapp2 handler that provides CRUD functionality for waypoint
-    objects in the system. This connects directly with Google's datastore
-    to manipulate the waypoint objects.
+    Endpoints implementation for waypoint manipulation.
     """
 
     def get(self, name=None):
