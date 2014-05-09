@@ -1,0 +1,19 @@
+header {
+  background-color: #BFBBA4;
+  padding: 15px 0;
+  margin-bottom: 15px;
+  border-bottom-color: #EFF1E7;
+  border-bottom-width: 2px;
+  border-bottom-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+  box-shadow: 0px 5px 10px 0px rgba(38,8,0,1);
+  color : #D9593A;
+}
+
+header a {
+  cursor: pointer;
+}
+
+header .media {
+  margin-top: 0;
+}

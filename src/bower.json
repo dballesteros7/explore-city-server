@@ -1,0 +1,30 @@
+{
+  "name": "xplore",
+  "version": "0.1.4",
+  "homepage": "https://github.com/dballesteros7/explore-city-server",
+  "authors": [
+    "Diego Ballesteros Villamizar <diegob@student.ethz.ch>"
+  ],
+  "description": "Xplore - A new application to take you on amazing tours around new and known cities.",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "1.2.16",
+    "angular-route": "1.2.16",
+    "bootstrap": "3.1.1",
+    "angular-ui-bootstrap": "0.11.0",
+    "underscore": "1.6.0",
+    "angular-google-maps": "1.0.18",
+    "visualizations" : "git://github.com/dballesteros7/visualizations.git#0.1.8"
+  },
+  "resolutions": {
+    "underscore": "1.6.0"
+  }
+}

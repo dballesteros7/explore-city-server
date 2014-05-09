@@ -1,26 +1,39 @@
 <!DOCTYPE html>
-<html ng-app="index">
+<html ng-app="xplore.index">
 <head>
 <meta charset="UTF-8">
 <title>Xplore</title>
 <link rel="stylesheet"
-  href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+  href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="/bower_components/visualizations/dist/visualizations.min.css">
+<link rel="stylesheet" href="/css/header.css">
+<link rel="stylesheet" href="/css/waypoints.css">
 </head>
 <body>
-
   <xplore-header></xplore-header>
-  <div ng-view class="container">
-  </div>
+  <div ng-view class="container"></div>
   <xplore-footer></xplore-footer>
   <!-- Superheroic AngularJS -->
   <script type="text/javascript"
-    src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
-  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular-route.min.js"></script>
+    src="/bower_components/angular/angular.min.js"></script>
+  <script type="text/javascript"
+    src="/bower_components/angular-route/angular-route.min.js"></script>
   <!-- Underscore -->
   <script type="text/javascript"
-    src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+    src="/bower_components/underscore/underscore.js"></script>
+  <!-- Google Maps + AngularJS -->
+  <script src="//maps.googleapis.com/maps/api/js?sensor=false"></script>
+  <script type="text/javascript"
+    src="/bower_components/angular-google-maps/dist/angular-google-maps.js"></script>
+  <!-- Visualizations -->
+  <script type="text/javascript" src="/bower_components/d3/d3.min.js"></script>
+  <script type="text/javascript" src="/bower_components/visualizations/dist/visualizations.js"></script>
   <!-- Xplore JS -->
-  <script type="text/javascript" src="/js/directives/layout-elements.js"></script>
-  <script type="text/javascript" src="/js/apps/index.js"></script>
+  <script type="text/javascript" src="/js/app.js"></script>
+  <script type="text/javascript" src="/js/services/api.js"></script>
+  <script type="text/javascript" src="/js/services/utils.js"></script>
+  <script type="text/javascript" src="/js/filters/utils.js"></script>
+  <script type="text/javascript" src="/js/directives/layout.js"></script>
+  <script type="text/javascript" src="/js/controllers/index/waypoints.js"></script>
 </body>
 </html>

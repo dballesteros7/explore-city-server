@@ -13,6 +13,7 @@ __all__ = ['AccessToken']
 class AccessToken(GenericModel):
     """Access token ndb model"""
 
+    _DEFAULT_ACCESS_TOKEN_ROOT = ndb.Key('AccessTokenRoot', 'default')
     _ACCESS_TOKEN_EXPIRATION_TIME = 24 * 3600
     _TOKEN_BYTE_LENGTH = 32
 
@@ -95,3 +96,7 @@ class AccessToken(GenericModel):
             return result.associated_user
         else:
             raise NotExistentTokenError()
+    
+    @classmethod
+    def default_ancestor(cls):
+        return cls._DEFAULT_ACCESS_TOKEN_ROOT

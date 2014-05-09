@@ -32,9 +32,9 @@ class GoogleIdentity(GenericModel):
     Google APIs on behalf of the user."""
 
     user_gid = ndb.StringProperty(required = True)
-    access_token = ndb.StringProperty(required = True)
-    refresh_token = ndb.StringProperty(required = True)
-    expiration_time = ndb.DateTimeProperty(required = True)
+    access_token = ndb.StringProperty()
+    refresh_token = ndb.StringProperty()
+    expiration_time = ndb.DateTimeProperty()
 
     @classmethod
     def create(cls, auth_info):

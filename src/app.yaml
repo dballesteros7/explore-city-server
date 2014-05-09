@@ -25,6 +25,12 @@ handlers:
 
 - url: /templates
   static_dir: html/templates/
+  
+- url: /views
+  static_dir: html/views/
+
+- url: /bower_components
+  static_dir: bower_components/
 
 - url: /home(/.*)?$
   static_files: html/index.html

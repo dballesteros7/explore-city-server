@@ -48,3 +48,8 @@ class Mission(GenericModel):
             self.put()
         else:
             self.delete()
+
+    def to_json(self):
+        json_self = {'name' : self.name,
+                     'description' : self.description}
+        return json_self

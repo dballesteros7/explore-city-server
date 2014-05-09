@@ -1,11 +1,12 @@
 from google.appengine.api.images import get_serving_url
 from google.appengine.ext import ndb
-from google.appengine.ext.ndb.blobstore import BlobKey
 from google.appengine.ext.blobstore import BlobInfo
+from google.appengine.ext.ndb.blobstore import BlobKey
 import json
 
 from geotypes import Point
 from xplore.database.models import MissionWaypoint
+from xplore.database.utils import get_missions_for_waypoint
 from xplore.handler.api.base_service import BaseResource, QueryType
 from xplore.webutils import parseutils
 
@@ -188,6 +189,13 @@ class WaypointResource(BaseResource):
         # TODO: Clean all submissions related to this waypoint
         self.build_base_response()
         self.response.out.write(json.dumps(None))
+
+    def missions_for_waypoint(self, name):
+        waypoint = MissionWaypoint.get_by_property('name', name)[0]
+        results = get_missions_for_waypoint(waypoint.key)
+        parsed_results = [m.to_json() for m in results]
+        self.build_base_response()
+        self.response.out.write(json.dumps(parsed_results))
 
     ###########################################################################
     # Utility methods

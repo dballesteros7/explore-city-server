@@ -11,6 +11,7 @@ from xplore import secrets
 from xplore.handler.api.auth import TokenResource
 from xplore.handler.api.imageservice import ImageUploadHandler, ImageUploadUrlProvider
 from xplore.handler.api.missions import MissionResource
+from xplore.handler.api.statistics import StatisticsResource
 from xplore.handler.api.submissions import SubmissionResource
 from xplore.handler.api.users import UserResource
 from xplore.handler.api.waypoints import WaypointResource
@@ -37,7 +38,8 @@ app = webapp2.WSGIApplication([
   RedirectRoute(r'/api/upload', handler=ImageUploadHandler, methods=['POST'], name='image-upload', strict_slash=True),
   RedirectRoute(r'/api/upload', handler=ImageUploadUrlProvider, methods=['GET'], name='image-upload-url', strict_slash=True),
   RedirectRoute(r'/api/waypoints', handler=WaypointResource, name='waypoints-resource', strict_slash=True),
-  RedirectRoute(r'/api/waypoints/<name>', handler=WaypointResource, name='waypoints-resource-named', strict_slash=True),
+  RedirectRoute(r'/api/waypoints/<name>', handler=WaypointResource, name='waypoints-resource-named', methods=['GET'], strict_slash=True),
+  RedirectRoute(r'/api/waypoints/<name>/missions', handler=WaypointResource, handler_method='missions_for_waypoint', name='missions-for-waypoint', strict_slash=True),
   RedirectRoute(r'/api/missions', handler=MissionResource, name='missions-resource', strict_slash=True),
   RedirectRoute(r'/api/missions/<name>', handler=MissionResource, name='missions-resource-named', strict_slash=True),
   RedirectRoute(r'/api/missions/<name>/start', handler=MissionResource, handler_method='mission_start' , name='missions-resource-start',
@@ -49,7 +51,10 @@ app = webapp2.WSGIApplication([
   RedirectRoute(r'/api/submissions', handler=SubmissionResource, name='submissions-resource', strict_slash=True),
   RedirectRoute(r'/api/submissions/<name>', handler=SubmissionResource, name='submissions-resource-named', strict_slash=True),
   RedirectRoute(r'/api/users', handler=UserResource, name='users-resource', strict_slash=True),
+  RedirectRoute(r'/api/users/me', handler=UserResource, handler_method='me', name='users-resource', strict_slash=True),
   RedirectRoute(r'/api/users/<userkey>', handler=UserResource, name='users-resource-named', strict_slash=True),
+  RedirectRoute(r'/api/waypoints/<name>/popularity', handler=StatisticsResource, handler_method='waypoint_popularity', name='waypoint-popularity', strict_slash=True, methods=['GET']),
+  RedirectRoute(r'/api/users/me/waypoints/<name>', handler=StatisticsResource, handler_method='waypoint_info_for_user', name='waypoint-info-user', strict_slash=True, methods=['GET']),
   # Auth API
   RedirectRoute(r'/auth/token', handler=TokenResource, name='auth-token-provider', methods=['GET'], strict_slash=True),
   # HTML pages
