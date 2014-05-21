@@ -3,34 +3,34 @@
     zoom="map.zoom" draggable="{{map.draggable}}" events="map.events">
   <markers models="waypoints" coords="'self'" click="waypointClicked"
     icon="'icon'"></markers> </google-map>
-  <div id="waypoint-details" class="col-sm-3" ng-show="displayWaypointInfo">
+  <div id="waypoint-details" class="col-sm-3"
+    ng-show="displayWaypointInfo">
     <div class="row">
       <div class="col-sm-12">
-        <h3>{{displayWaypoint.name}}</h3>
-        <h4>({{displayWaypoint.latitude | number:4}},
-          {{displayWaypoint.longitude |number:4}})</h4>
+        <h1>
+          {{displayWaypoint.name}} <small>@({{displayWaypoint.latitude
+            | number:2}}, {{displayWaypoint.longitude |number:2}})</small>
+        </h1>
       </div>
     </div>
     <div class="row">
       <div class="col-sm-12">
-        <img class="img-responsive waypoint-display"
-          ng-src="{{displayWaypoint.image_url}}"
-          title="{{displayWaypoint.name}}">
+        <div class="thumbnail">
+          <img class="img-responsive waypoint-display"
+            ng-src="{{displayWaypoint.image_url}}"
+            title="{{displayWaypoint.name}}">
+
+        </div>
       </div>
     </div>
+    <hr>
     <div class="row">
       <div class="col-sm-12">
-        <p>
-          <strong>Tags: </strong>{{displayWaypoint.tags | stringList}}
-        </p>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-sm-12">
-        <h4>Xplore this!</h4>
+        <h2>Xplore it!</h2>
         <div ng-show="displayWaypoint.user.completed" class="row">
           <div class="col-sm-12">
-            <strong>Congrats! You have completed this waypoint already.</strong>
+            <strong>Congrats! You have completed this waypoint
+              already.</strong>
           </div>
         </div>
         <div ng-show="displayWaypoint.user.completed" class="row">
@@ -39,57 +39,41 @@
           </div>
         </div>
         <div ng-hide="displayWaypoint.user.completed" class="row">
-          <div class="col-sm-12">
-            <strong>You have not completed this waypoint.</strong>
-          </div>
+          <p class="col-sm-12">
+            <strong>You have not completed this waypoint.</strong> <em>This
+              waypoint is part of these missions:</em>
+          </p>
         </div>
         <div ng-hide="displayWaypoint.user.completed" class="row">
           <div class="col-sm-12">
-            <em>This waypoint is part of:</em>
-          </div>
-        </div>
-        <div ng-hide="displayWaypoint.user.completed" class="row">
-          <div class="col-sm-12">
-            <ul class="list-unstyled">
-              <li ng-repeat="relatedMission in displayWaypoint.missions">
+            <div id="related-missions-list" class="list-group">
+              <li class="list-group-item" ng-repeat="relatedMission in displayWaypoint.missions">
                 <a href="{{relatedMission.link}}">{{relatedMission.name}}</a>
               </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-sm-12">
-        <h4>Popularity</h4>
-        <div class="row">
-          <div class="col-sm-12">
-            <date-series width="250" height="300" id="popularity-chart"
-              units="visits" axis-x-title="Date" y-title="Visits"
-              data="displayWaypoint.popularity"></date-series>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div id="similar-waypoints" class="col-sm-3" ng-show="displayWaypointInfo">
+  <div id="similar-waypoints" class="col-sm-3"
+    ng-show="displayWaypointInfo">
     <div class="row">
       <div class="col-sm-12">
-        <h3>Similar waypoints</h3>
+        <h2>Xplore recommends</h2>
       </div>
     </div>
     <div class="row">
       <div class="col-sm-12">
-        <ul class="media-list">
-          <li ng-repeat="similarWaypoint in displayWaypoint.similar" 
-            class="media">
-            <a class="pull-left">
-              <img class="media-object thumbnail-waypoint" ng-src="{{similarWaypoint.image_url}}">
-            </a>
+        <ul id="similar-waypoint-list" class="media-list">
+          <li ng-repeat="similarWaypoint in displayWaypoint.similar"
+            class="media"><a class="pull-left"> <img
+              class="media-object thumbnail-waypoint img-rounded"
+              ng-src="{{similarWaypoint.image_url}}">
+          </a>
             <div class="media-body">
               <h4 class="media-heading">{{similarWaypoint.name}}</h4>
-            </div>
-          </li>
+            </div></li>
         </ul>
       </div>
     </div>

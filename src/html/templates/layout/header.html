@@ -1,58 +1,35 @@
 <header>
-  <div class="container">
-    <div class="row">
-      <div class="col-sm-6">
-        <ul class="list-inline">
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <a href="#" class="navbar-brand">Xplore</a>
+      </div>
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
           <li><a href="#/waypoints">Waypoints</a></li>
           <li><a href="#/missions">Missions</a></li>
         </ul>
-      </div>
-      <div ng-show="userLoggedIn" class="col-sm-offset-2 col-sm-4">
-        <div class="media pull-right">
-          <a class="pull-left" href="#"> <img width="44px"
-            class="media-object" ng-src="{{user.profileImg}}"
-            title="My profile">
-          </a>
-          <div class="media-body">
-            <h4 class="media-heading">
-              {{user.username}} <a href="{{user.logout_url}}">Sign
-                out</a>
-            </h4>
-            <span><b>Rank: </b><i>{{user.rank}}</i></span>
+        <p class="navbar-right navbar-text" ng-show="loadingLoginInfo">
+          Checking your login information...</p>
+        <div ng-show="userLoginRequired" class="navbar-right">
+          <a ng-href="{{user.login_url}}"
+            class="btn btn-primary navbar-btn">Sign in</a>
+        </div>
+        <form ng-show="userRegistrationRequired"
+          class="navbar-form navbar-right">
+          <div class="form-group">
+            <input type="text" class="form-control"
+              placeholder="Username" ng-model="inputUsername">
           </div>
+          <button ng-click="registerUser()" class="btn btn-success">Register
+            in Xplore</button>
+        </form>
+        <div ng-show="userLoggedIn" class="navbar-right">
+          <a href="#" class="navbar-text navbar-link">{{user.rank}} {{user.username}}</a>
+          <a href="{{user.logout_url}}" class="btn btn-warning navbar-btn">Sign out</a>
+          
         </div>
-      </div>
-      <div ng-show="userLoginRequired" class="col-sm-offset-2 col-sm-4">
-        <div class="media pull-right">
-          <a class="pull-left" href="#"> <img width="44px"
-            class="media-object" src="/img/icons/user-default.svg"
-            title="Please login...">
-          </a>
-          <div class="media-body">
-            <h4 class="media-heading">
-              <a ng-href="{{user.login_url}}">Login</a>
-            </h4>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-offset-2 col-sm-4">
-        <div class="pull-right">
-          <form ng-show="userRegistrationRequired" class="form-inline">
-            <div class="form-group">
-              <input id="input-username" type="text"
-                class="form-control" placeholder="Enter a username"
-                ng-model="inputUsername">
-            </div>
-            <button ng-click="registerUser()" class="btn btn-primary">Register</button>
-            <span class="form-control-static"><a
-              ng-href="{{user.logout_url}}">Sign out</a></span>
-          </form>
-        </div>
-      </div>
-      <div ng-show="loadingLoginInfo" class="col-sm-offset-2 col-sm-4">
-        <span class="pull-right">Checking your login
-          information...</span>
       </div>
     </div>
-  </div>
+  </nav>
 </header>

@@ -1,5 +1,5 @@
 .angular-google-map-container,#waypoint-details,#similar-waypoints {
-  height: 800px;
+  min-height: 600px;
 }
 
 img.waypoint-display {
@@ -10,10 +10,18 @@ img.thumbnail-waypoint {
   max-width: 100%;
   max-height: 256px;
 }
-
-#similar-waypoints {
-  overflow-y: auto;
-}
 #similar-waypoints .media a{
   max-width: 50%;
 }
+
+/*
+#related-missions-list {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+#similar-waypoint-list {
+  max-height: 500px;
+  overflow-y: auto;
+}
+*/

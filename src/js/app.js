@@ -6,6 +6,8 @@ angular.module('xplore.index', [ 'xplore.layout', 'xplore.api', 'ngRoute',
       $routeProvider.when('/waypoints', {
         controller : 'WaypointsCtrl',
         templateUrl : '/views/waypoints.html',
+      }).otherwise({
+        templateUrl : '/views/home.html'
       });
     }]);
 angular.module('xplore.index.controllers', ['xplore.api', 'xplore.utils']);

@@ -73,6 +73,8 @@ class UserResource(BaseResource):
         else:
             result_user['status'] = 2
             result_user['login_url'] = users.create_login_url(redirect_url or '/home')
+        import time
+        time.sleep(2)
         self.build_base_response()
         self.response.out.write(json.dumps(result_user))
 
