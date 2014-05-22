@@ -6,7 +6,14 @@ angular.module('xplore.index', [ 'xplore.layout', 'xplore.api', 'ngRoute',
       $routeProvider.when('/waypoints', {
         controller : 'WaypointsCtrl',
         templateUrl : '/views/waypoints.html',
-      }).otherwise({
+      }).when('/missions/:mission', {
+        controller : 'MissionsCtrl',
+        templateUrl : '/views/missions.html'
+      }).when('/missions', {
+        controller : 'MissionsCtrl',
+        templateUrl : '/views/missions.html'
+      })
+      .otherwise({
         templateUrl : '/views/home.html'
       });
     }]);

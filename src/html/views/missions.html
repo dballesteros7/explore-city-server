@@ -1,0 +1,27 @@
+<div class="row">
+  <div class="col-xs-4">
+    <h2>All Missions</h2>
+    <div class="list-group">
+      <li class="list-group-item" ng-repeat="mission in allMissions"><a
+        ng-click="displayMission(mission)" href ng-class="">{{mission.name}}</a></li>
+    </div>
+  </div>
+  <div class="well col-xs-8">
+    <h2>Mission preview</h2>
+    <div class="row">
+      <div class="col-xs-8">
+        <div class="thumbnail">
+          <img ng-src="{{selectedMission.selectedWaypoint.image_url}}">
+        </div>
+      </div>
+      <div class="col-xs-4">
+        <div class="list-group">
+          <li class="list-group-item"
+            ng-repeat="waypoint in selectedMission.waypoints">
+            <a href ng-click="displayWaypoint(waypoint)">{{waypoint.name}}</a>
+          </li>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

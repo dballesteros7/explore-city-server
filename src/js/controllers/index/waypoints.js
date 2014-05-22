@@ -91,7 +91,7 @@ angular.module('xplore.index.controllers')
           function(missions){
           $scope.displayWaypoint.missions = missions;
           _.each($scope.displayWaypoint.missions, function(val){
-            val.link = '#/missions?mission=' + encodeURIComponent(val.name);
+            val.link = '#/missions/' + encodeURIComponent(val.name);
           });
       });
       waypointsApi.waypointPopularity($scope.displayWaypoint).then(

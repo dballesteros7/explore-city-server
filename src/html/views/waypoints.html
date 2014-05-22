@@ -7,7 +7,7 @@
     ng-show="displayWaypointInfo">
     <div class="row">
       <div class="col-sm-12">
-        <h1>
+        <h1 class="waypoint-title">
           {{displayWaypoint.name}} <small>@({{displayWaypoint.latitude
             | number:2}}, {{displayWaypoint.longitude |number:2}})</small>
         </h1>
@@ -19,7 +19,6 @@
           <img class="img-responsive waypoint-display"
             ng-src="{{displayWaypoint.image_url}}"
             title="{{displayWaypoint.name}}">
-
         </div>
       </div>
     </div>
@@ -47,7 +46,8 @@
         <div ng-hide="displayWaypoint.user.completed" class="row">
           <div class="col-sm-12">
             <div id="related-missions-list" class="list-group">
-              <li class="list-group-item" ng-repeat="relatedMission in displayWaypoint.missions">
+              <li class="list-group-item"
+                ng-repeat="relatedMission in displayWaypoint.missions">
                 <a href="{{relatedMission.link}}">{{relatedMission.name}}</a>
               </li>
             </div>

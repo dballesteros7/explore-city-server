@@ -14,14 +14,12 @@ img.thumbnail-waypoint {
   max-width: 50%;
 }
 
-/*
-#related-missions-list {
-  max-height: 150px;
-  overflow-y: auto;
-}
+#similar-waypoint-list .media-heading {
+  overflow: hidden;
+  text-overflow: ellipsis;
+} 
 
-#similar-waypoint-list {
-  max-height: 500px;
-  overflow-y: auto;
+.waypoint-title {
+  overflow : hidden;
+  text-overflow : ellipsis;
 }
-*/
