@@ -2,7 +2,6 @@
 *.project
 *.pyc
 *.settings
-data/
 doc/build/
 src/lib/
 *log
