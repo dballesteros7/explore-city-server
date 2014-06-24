@@ -17,7 +17,7 @@ import re
 
 class LexiconError(Exception):
     '''Base lexicon error.
-    
+
     Attributes:
         msg -- Error message explaining why the input didn't pass validation.
     '''

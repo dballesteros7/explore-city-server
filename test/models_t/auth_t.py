@@ -8,10 +8,11 @@ from xplore.database.errors import InvalidTokenError, NotExistentTokenError,\
     ExpiredTokenError
 
 
-def test_token():
+def create_mock_token():
     user = user_t.test_user()
     token = AccessToken.create(user)
     return token
+
 
 class AccessTokenTest(unittest.TestCase):
     """Test suite for the AccessToken model"""

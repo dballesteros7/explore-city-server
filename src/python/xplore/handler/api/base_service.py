@@ -23,9 +23,10 @@ class QueryType:
     DISTANCE_FROM_CENTER = 1
     BOUNDING_BOX = 2
     UNBOUNDED = 0
+    CREATE = 3
 
 class BaseResource(BaseHandler):
-    '''Base RequestHandler that serves as parent of all other handlers in the 
+    '''Base RequestHandler that serves as parent of all other handlers in the
     API. It defines basic methods to deal with parameter validation, response
     building and request parsing.
     '''
@@ -41,7 +42,7 @@ class BaseResource(BaseHandler):
         Since this dictionary may come directly from the request then it is
         immutable.
         '''
-        
+
         if not self.request.headers.get('Content_Type') and\
             not self.request.headers.get('Content-Type') :
             return self.request.params

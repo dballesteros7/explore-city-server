@@ -1,34 +1,29 @@
-from google.appengine.api import files
 from google.appengine.ext import ndb
 import json
 import unittest
 
 from xplore.database.models import MissionProgress, MissionWaypoint
 from harness import TestHarnessWithWeb
-from models_t.auth_t import test_token
-from models_t.missionprogress_t import test_mission
+from handlers_t.waypoints_t import create_blob
+from models_t.auth_t import create_mock_token
+from models_t.missionprogress_t import create_mock_mission
 
 
-def create_blob(contents, mime_type):
-    fn = files.blobstore.create(mime_type=mime_type)
-    with files.open(fn, 'a') as f:
-        f.write(contents)
-    files.finalize(fn)
-    return files.blobstore.get_blob_key(fn)
-
-def test_waypoints():
+def create_mock_waypoints():
     base_waypoint_name = 'waypoint%d'
     waypoints = []
     for i in xrange(5):
-        blobkey = create_blob("Test-blob-not-really-an-image", 'application/octet-stream')
+        blobkey = create_blob('Test-blob-not-really-an-image',
+                              'application/octet-stream')
         location = ndb.GeoPt(i, i)
         waypoint = MissionWaypoint.create_with_default_ancestor(
-                                                    name=base_waypoint_name % i,
-                                                    location=location,
-                                                    image=blobkey)
+            name=base_waypoint_name % i,
+            location=location,
+            image=blobkey)
         waypoint.put()
         waypoints.append(waypoint)
     return waypoints
+
 
 class TestMissionResource(unittest.TestCase):
 
@@ -36,14 +31,13 @@ class TestMissionResource(unittest.TestCase):
         self.testharness = TestHarnessWithWeb()
         self.testharness.setup()
 
-
     def tearDown(self):
         self.testharness.destroy()
 
     def test_single(self):
-        waypoints = test_waypoints()
-        params = {'name' : 'TestMission',
-                  'waypoints' : [w.name for w in waypoints]}
+        waypoints = create_mock_waypoints()
+        params = {'name': 'TestMission',
+                  'waypoints': [w.name for w in waypoints]}
         resp = self.testharness.testapp.post('/api/missions',
                                              json.dumps(params),
                                              content_type='application/json')
@@ -57,8 +51,8 @@ class TestMissionResource(unittest.TestCase):
         self.assertEqual(len(mission['waypoints']), len(params['waypoints']))
 
     def test_progress(self):
-        token = test_token()
-        mission = test_mission()
+        token = create_mock_token()
+        mission = create_mock_mission()
         resp = self.testharness.testapp.post('/api/missions/%s/start' % mission.name,
                                              {'access_token' : token.token_string})
         self.assertEqual(resp.status_int, 200)

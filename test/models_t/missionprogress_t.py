@@ -28,7 +28,7 @@ def test_waypoints():
         keys.append(waypoint.key)
     return keys
 
-def test_mission():
+def create_mock_mission():
     base_mission_name = 'mission'
     waypoint_keys = test_waypoints()
     mission = Mission.create_with_default_ancestor(name=base_mission_name,

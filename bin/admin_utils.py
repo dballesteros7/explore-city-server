@@ -15,7 +15,7 @@ import requests
 
 def create_waypoint(name, latitude, longitude, image_path, base_host):
     # Make sure that the file exist before doing anything
-    files = {'image' : open(image_path, 'rb')}
+    files = {'image': open(image_path, 'rb')}
 
     # Get the URL for uploading the image
     url_server = '%s/upload' % base_host
@@ -24,20 +24,33 @@ def create_waypoint(name, latitude, longitude, image_path, base_host):
     data = response_1.json()
 
     # Upload the image to the given url and retrieve the key
-    response_2 = requests.post(data['upload_url'], files = files)
+    response_2 = requests.post(data['upload_url'], files=files)
     response_2.raise_for_status()
     image_data = response_2.json()
 
     # Upload the metadata with the image key
-    headers = {'content-type' : 'application/json'}
-    data_object = {'latitude' : latitude,
-                   'longitude' : longitude,
-                   'name' : name,
-                   'image_key' : image_data['image_key']}
+    headers = {'content-type': 'application/json'}
+    data_object = {'latitude': latitude,
+                   'longitude': longitude,
+                   'name': name,
+                   'image_key': image_data['image_key']}
     url_waypoint = '%s/waypoints' % base_host
-    response_3 = requests.post(url_waypoint, data = json.dumps(data_object), headers = headers)
+    response_3 = requests.post(url_waypoint, data=json.dumps(data_object),
+                               headers=headers)
     response_3.raise_for_status()
-    return
+
+
+def create_waypoint_with_url(name, latitude, longitude, image_url, base_host):
+    headers = {'content-type': 'application/json'}
+    data_object = {'latitude': latitude,
+                   'longitude': longitude,
+                   'name': name,
+                   'image_url': image_url}
+    url_waypoint = '%s/waypoints' % base_host
+    response = requests.post(url_waypoint, data=json.dumps(data_object),
+                             headers=headers)
+    response.raise_for_status()
+
 
 def update_waypoint(name, latitude, longitude, image_path, base_host):
     # PUT the data that is not None

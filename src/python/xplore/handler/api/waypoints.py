@@ -1,4 +1,3 @@
-from google.appengine.api.images import get_serving_url
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb.blobstore import BlobKey
 from google.appengine.ext.blobstore import BlobInfo
@@ -18,8 +17,7 @@ class WaypointResource(BaseResource):
     """
 
     def get(self, name=None):
-        """
-        Provides the GET verb for the waypoints resource. It retrieves
+        """Provides the GET verb for the waypoints resource. It retrieves
         a list of waypoints according to the query parameters or all the
         waypoints in the system. If name is given then only the information
         about the given waypoint will be retrieved.
@@ -60,39 +58,30 @@ class WaypointResource(BaseResource):
 
         # Build the JSON response
         self.build_base_response()
-        response_results = {'waypoints' : []}
+        response_results = {'waypoints': []}
         for result in results:
-            options = {'size' : 0}
-            if 'image_size' in qry_params:
-                options['size'] = qry_params['image_size']
-            response_results['waypoints'].append({'latitude' :
-                                                    result.location.lat,
-                                                  'longitude' :
-                                                    result.location.lon,
-                                                  'image_url' :
-                                                    get_serving_url(
-                                                        result.image,
-                                                        **options),
-                                                  'image_key' :
-                                                    str(result.image),
-                                                  'name' :
-                                                    result.name})
+            response_results['waypoints'].append(
+                result.to_jsonizable(
+                    image_size=qry_params.get('image_size', 0)))
         self.response.out.write(json.dumps(response_results))
 
     def post(self):
-        """
-        Provides the POST verb for the waypoints resource. It creates a new
+        """Provides the POST verb for the waypoints resource. It creates a new
         mission waypoint in the datastore given its location information
-        and the associated image blob key.
-        
+        and an image source.
+
         It accepts parameters both in the body as JSON or as request arguments,
         the required arguments are:
-            - latitude: Floating point latitude of the waypoint
+            - latitude:  Floating point latitude of the waypoint
             - longitude: Floating point longitude of the waypoint
-            - image_key: Valid key in the blobstore for the reference image
             - name: Name for the waypoint, must be non-existent
+        For the image source, one of the two following parameters must be
+        present:
+            * image_key: Blobkey identifier referring to a valid image stored
+                in the application's blobstore.
+            * image_url: URL pointing to a valid location of an image.
 
-        The accepted content types are 'application/json' and 
+        The accepted content types are 'application/json' and
         'application/x-www-form-urlencoded'
         """
         # Check the content type and parse the argument appropriately
@@ -103,19 +92,26 @@ class WaypointResource(BaseResource):
         location = ndb.GeoPt(model_params['latitude'],
                              model_params['longitude'])
 
-        waypoint = MissionWaypoint.create_with_default_ancestor(
-                                    name=model_params['name'],
-                                    location=location,
-                                    image=BlobKey(model_params['image_key']))
+        if 'image_key' in model_params:
+            waypoint = MissionWaypoint.create_with_default_ancestor(
+                name=model_params['name'],
+                location=location,
+                image=BlobKey(model_params['image_key']))
+        else:
+            waypoint = MissionWaypoint.create_with_default_ancestor(
+                name=model_params['name'],
+                location=location,
+                image_url=model_params['image_url'])
+
         waypoint.put()
 
         # Return a response with the newly created object id.
         self.build_base_response(status_code=201)
-        response_results = {'name' : waypoint.name,
-                            'content_url' :
-                                        self.uri_for('waypoints-resource-named',
-                                                     name=waypoint.name,
-                                                     _full=True)}
+        response_results = {'name': waypoint.name,
+                            'content_url': self.uri_for(
+                                'waypoints-resource-named',
+                                name=waypoint.name,
+                                _full=True)}
         self.response.out.write(json.dumps(response_results))
 
     def put(self, name):
@@ -123,7 +119,7 @@ class WaypointResource(BaseResource):
         Provides the PUT verb for the waypoint resource. It allows the update
         of an existing waypoint given its name and updated information.
         The accepted parameters are:
-        
+
         - latitude, longitude: Floating point coordinates for the new
           location of the waypoint.
         - image_key: String corresponding to an updated image key on
@@ -132,7 +128,7 @@ class WaypointResource(BaseResource):
         Any combination of the 3 parameters can be given and just the ones
         provided will be changed in the stored object.
 
-        The accepted content types are 'application/json' and 
+        The accepted content types are 'application/json' and
         'application/x-www-form-urlencoded'
         """
         # Check the content type and parse the arguments appropriately
@@ -236,11 +232,17 @@ class WaypointResource(BaseResource):
         '''
         model_params = {}
         model_params['latitude'] = parseutils.parse_float(
-                                                parameters['latitude'], -90, 90)
+            parameters['latitude'], -90, 90)
         model_params['longitude'] = parseutils.parse_float(
-                                            parameters['longitude'], -180, 180)
+            parameters['longitude'], -180, 180)
         model_params['name'] = parameters['name']
-        model_params['image_key'] = parameters['image_key']
+        if 'image_key' in parameters:
+            model_params['image_key'] = parameters['image_key']
+        elif 'image_url' in parameters:
+            model_params['image_url'] = parameters['image_url']
+        else:
+            self.abort(400, detail='Either an image_key or image_url must '
+                       'be provided to create a mission waypoint.')
 
         if MissionWaypoint.get_by_property('name', model_params['name']):
             self.abort(400, detail='Specified resource already exists.')
