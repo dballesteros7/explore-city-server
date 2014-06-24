@@ -35,6 +35,8 @@ def run_server():
         'log.access_file': 'access.log',
         'log.screen': False
     }
+    d = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
+    d.subscribe()
     cherrypy.config.update(server_conf)
     cherrypy.quickstart(TourService(), '/', app_conf)
 
