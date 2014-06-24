@@ -5,3 +5,6 @@
 data/
 doc/build/
 src/lib/
+*log
+*sublime-project
+*sublime-workspace
