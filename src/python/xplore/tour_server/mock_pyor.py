@@ -14,4 +14,5 @@ def get_path(start, end):
             tokens = line.strip().split(',')
             if random.random() < _CHANCE:
                 results.append(tokens[0])
+    random.shuffle(results)
     return results
